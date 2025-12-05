@@ -3,11 +3,12 @@ import { Platform, PLATFORM_LABELS } from '../types';
 
 interface SidebarProps {
   onNewChat: () => void;
-  selectedPlatform: Platform | 'history'; // Add history type locally for UI state
+  selectedPlatform: Platform | 'history'; 
   onSelectPlatform: (platform: Platform | 'history') => void;
+  onResetApiKey: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ onNewChat, selectedPlatform, onSelectPlatform }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ onNewChat, selectedPlatform, onSelectPlatform, onResetApiKey }) => {
   
   const platforms: { id: Platform, icon: React.ReactNode }[] = [
     { 
@@ -45,7 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNewChat, selectedPlatform, o
         <p className="text-xs text-gray-500 mt-1">100 Proven Hooks Database</p>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-4">
+      <div className="flex-1 overflow-y-auto py-4 custom-scrollbar">
         {/* Navigation Section */}
         <div className="px-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
           Menu Utama
@@ -90,16 +91,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNewChat, selectedPlatform, o
         </div>
       </div>
 
-      {/* Settings Section Removed (API Key reset) */}
-      <div className="mt-auto border-t border-gray-800"></div>
-
-      <div className="p-4 pt-2">
+      <div className="p-4 space-y-3 bg-gray-900 border-t border-gray-800">
         <button
           onClick={onNewChat}
-          className="w-full flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors duration-200 border border-gray-700 text-sm"
+          className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 px-4 rounded-lg transition-colors duration-200 shadow-lg text-sm font-semibold"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           <span>Buat Skrip Baru</span>
+        </button>
+
+        <button
+          onClick={onResetApiKey}
+          className="w-full flex items-center justify-center gap-2 bg-transparent hover:bg-gray-800 text-gray-500 hover:text-red-400 py-2 px-4 rounded-lg transition-colors text-xs"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+          <span>Ganti API Key</span>
         </button>
       </div>
     </div>

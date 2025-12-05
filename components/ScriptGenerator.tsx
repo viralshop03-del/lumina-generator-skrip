@@ -1,6 +1,9 @@
-
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ScriptGeneratorProps, ScriptDuration, Platform, StoryboardScene, AudienceType, ToneType, ContentGoal } from '../types';
+
+interface ExtendedProps extends ScriptGeneratorProps {
+    initialTopic?: string;
+}
 
 const DURATIONS: ScriptDuration[] = ['5s', '15s', '25s', '35s', '45s', '1m', '2m', '5m', '10m'];
 
@@ -105,7 +108,7 @@ const SCENE_COLORS = {
   black: { border: 'border-gray-500', text: 'text-gray-400', icon: '⬛' },
 };
 
-export const ScriptGenerator: React.FC<ScriptGeneratorProps> = ({ 
+export const ScriptGenerator: React.FC<ExtendedProps> = ({ 
   selectedPlatform, 
   onGenerate, 
   onRegenerateWithHook,
@@ -113,12 +116,16 @@ export const ScriptGenerator: React.FC<ScriptGeneratorProps> = ({
   isGenerating, 
   results,
   activeVersionIndex,
-  error
+  initialTopic
 }) => {
-  const [topic, setTopic] = useState('');
+  const [topic, setTopic] = useState(initialTopic || '');
   const [duration, setDuration] = useState<ScriptDuration>('25s');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (initialTopic) setTopic(initialTopic);
+  }, [initialTopic]);
 
   // New Features States
   const [useCustomAudience, setUseCustomAudience] = useState(false);
@@ -146,7 +153,7 @@ export const ScriptGenerator: React.FC<ScriptGeneratorProps> = ({
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
-    alert('Teks berhasil disalin!');
+    // Alert removed, handled by parent toast or just simple feedback
   };
 
   const handleCopyStoryboard = () => {
@@ -200,69 +207,70 @@ ${activeResult.hashtags.join(' ')}
 
   return (
     <div className="flex flex-col h-full bg-gray-950 overflow-y-auto custom-scrollbar">
-      <div className="max-w-3xl mx-auto w-full p-4 md:p-8 space-y-8">
+      <div className="max-w-3xl mx-auto w-full p-4 md:p-8 space-y-8 pb-32">
         
         {/* Header */}
-        <div className="text-center space-y-2">
-          <h2 className={`text-2xl md:text-3xl font-bold ${theme.textColor} uppercase tracking-wide transition-colors duration-300`}>
+        <div className="text-center space-y-2 mt-4 md:mt-0">
+          <h2 className={`text-2xl md:text-3xl font-black ${theme.textColor} uppercase tracking-wider transition-colors duration-300`}>
             GENERATOR SKRIP KONTEN
           </h2>
-          <p className="text-gray-400 text-sm md:text-base">
-            Buat skrip konten sosial media yang viral, pilih durasi, dan biarkan AI bekerja.
+          <p className="text-gray-400 text-sm md:text-base max-w-lg mx-auto">
+            Buat skrip viral dalam hitungan detik. Pilih platform, atur durasi, dan biarkan AI bekerja dengan formula teruji.
           </p>
         </div>
 
         {/* Form Section */}
-        <div className={`bg-gray-900 border-2 ${theme.borderColor} rounded-2xl p-6 shadow-lg ${theme.shadow} transition-all duration-300`}>
+        <div className={`bg-gray-900 border-2 ${theme.borderColor} rounded-2xl p-4 md:p-6 shadow-2xl ${theme.shadow} transition-all duration-300`}>
           
           {/* Topic Input */}
           <div className="space-y-3 mb-6">
-            <label className={`block text-sm font-bold ${theme.textColor}`}>
-              Ide Konten / Topik / Produk
+            <label className={`block text-xs md:text-sm font-bold uppercase tracking-wider ${theme.textColor}`}>
+              Ide Konten / Topik Utama
             </label>
             <textarea
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               placeholder="Contoh: Tips diet tanpa menyiksa, Review baju lebaran, Cara investasi untuk pemula..."
-              className={`w-full bg-gray-950 border border-gray-700 rounded-xl p-4 text-white placeholder-gray-500 focus:outline-none focus:ring-2 ${theme.ringColor} focus:border-transparent transition-all resize-none h-28`}
+              className={`w-full bg-gray-950 border border-gray-700 rounded-xl p-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 ${theme.ringColor} focus:border-transparent transition-all resize-none h-32 text-sm md:text-base`}
             />
           </div>
 
           {/* Pro Features Toggle Section */}
           <div className="mb-6 space-y-4">
              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 border-b border-gray-800 pb-2">
-               Fitur Pro (Opsional)
+               Kustomisasi Lanjutan (Opsional)
              </div>
              
              {/* Feature 1: Audience & Tone */}
-             <div className={`p-4 rounded-xl border border-gray-800 bg-gray-950/50 ${useCustomAudience ? 'border-gray-600' : ''}`}>
+             <div className={`p-4 rounded-xl border border-gray-800 bg-gray-950/50 hover:border-gray-700 transition-colors ${useCustomAudience ? 'border-gray-600' : ''}`}>
                <div className="flex items-center justify-between cursor-pointer" onClick={() => setUseCustomAudience(!useCustomAudience)}>
-                  <div className="flex items-center gap-2">
-                     <span className="text-sm font-medium text-gray-200">🎯 Target Audiens & Gaya Bahasa</span>
+                  <div className="flex items-center gap-3">
+                     <span className="text-xl">🎯</span>
+                     <span className="text-sm font-bold text-gray-200">Target Audiens & Gaya Bahasa</span>
                   </div>
-                  <div className={`w-10 h-5 flex items-center bg-gray-700 rounded-full p-1 transition-colors ${useCustomAudience ? theme.toggleActive : ''}`}>
-                    <div className={`bg-white w-3.5 h-3.5 rounded-full shadow-md transform transition-transform ${useCustomAudience ? 'translate-x-5' : ''}`}></div>
+                  <div className={`w-11 h-6 flex items-center bg-gray-700 rounded-full p-1 transition-colors duration-300 ${useCustomAudience ? theme.toggleActive : ''}`}>
+                    <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${useCustomAudience ? 'translate-x-5' : ''}`}></div>
                   </div>
                </div>
                
                {useCustomAudience && (
-                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 animate-fade-in-up">
+                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-up">
                     <div className="space-y-1">
-                      <label className="text-xs text-gray-500">Siapa Penontonnya?</label>
+                      <label className="text-xs text-gray-500 font-semibold">Siapa Penontonnya?</label>
                       <select 
                         value={audience} 
                         onChange={(e) => setAudience(e.target.value as AudienceType)}
-                        className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-gray-200 focus:outline-none focus:border-indigo-500"
+                        className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-gray-200 focus:outline-none focus:border-indigo-500"
                       >
                         {AUDIENCES.map(a => <option key={a} value={a}>{a}</option>)}
                       </select>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs text-gray-500">Gaya Bicara?</label>
+                      <label className="text-xs text-gray-500 font-semibold">Gaya Bicara?</label>
                       <select 
                         value={tone} 
                         onChange={(e) => setTone(e.target.value as ToneType)}
-                        className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-gray-200 focus:outline-none focus:border-indigo-500"
+                        className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-gray-200 focus:outline-none focus:border-indigo-500"
                       >
                         {TONES.map(t => <option key={t} value={t}>{t}</option>)}
                       </select>
@@ -272,24 +280,25 @@ ${activeResult.hashtags.join(' ')}
              </div>
 
              {/* Feature 2: Custom Goal */}
-             <div className={`p-4 rounded-xl border border-gray-800 bg-gray-950/50 ${useCustomGoal ? 'border-gray-600' : ''}`}>
+             <div className={`p-4 rounded-xl border border-gray-800 bg-gray-950/50 hover:border-gray-700 transition-colors ${useCustomGoal ? 'border-gray-600' : ''}`}>
                <div className="flex items-center justify-between cursor-pointer" onClick={() => setUseCustomGoal(!useCustomGoal)}>
-                  <div className="flex items-center gap-2">
-                     <span className="text-sm font-medium text-gray-200">📢 Tujuan Konten (CTA Spesifik)</span>
+                  <div className="flex items-center gap-3">
+                     <span className="text-xl">📢</span>
+                     <span className="text-sm font-bold text-gray-200">Goal & Call to Action</span>
                   </div>
-                  <div className={`w-10 h-5 flex items-center bg-gray-700 rounded-full p-1 transition-colors ${useCustomGoal ? theme.toggleActive : ''}`}>
-                    <div className={`bg-white w-3.5 h-3.5 rounded-full shadow-md transform transition-transform ${useCustomGoal ? 'translate-x-5' : ''}`}></div>
+                  <div className={`w-11 h-6 flex items-center bg-gray-700 rounded-full p-1 transition-colors duration-300 ${useCustomGoal ? theme.toggleActive : ''}`}>
+                    <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${useCustomGoal ? 'translate-x-5' : ''}`}></div>
                   </div>
                </div>
                
                {useCustomGoal && (
                  <div className="mt-4 animate-fade-in-up">
                     <div className="space-y-1">
-                      <label className="text-xs text-gray-500">Apa Goal Utama?</label>
+                      <label className="text-xs text-gray-500 font-semibold">Apa Tujuan Utama?</label>
                       <select 
                         value={goal} 
                         onChange={(e) => setGoal(e.target.value as ContentGoal)}
-                        className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-gray-200 focus:outline-none focus:border-indigo-500"
+                        className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-gray-200 focus:outline-none focus:border-indigo-500"
                       >
                         {GOALS.map(g => <option key={g} value={g}>{g}</option>)}
                       </select>
@@ -299,33 +308,31 @@ ${activeResult.hashtags.join(' ')}
              </div>
 
              {/* Feature 3: Magic Hook */}
-             <div className={`p-4 rounded-xl border border-gray-800 bg-gray-950/50 ${useMagicHook ? 'border-gray-600' : ''}`}>
+             <div className={`p-4 rounded-xl border border-gray-800 bg-gray-950/50 hover:border-gray-700 transition-colors ${useMagicHook ? 'border-gray-600' : ''}`}>
                <div className="flex items-center justify-between cursor-pointer" onClick={() => setUseMagicHook(!useMagicHook)}>
-                  <div className="flex items-center gap-2">
-                     <span className="text-sm font-medium text-gray-200">🧲 Magic Hook Variasi (A/B Testing)</span>
+                  <div className="flex items-center gap-3">
+                     <span className="text-xl">🧲</span>
+                     <span className="text-sm font-bold text-gray-200">Magic Hook (3 Variasi)</span>
                   </div>
-                  <div className={`w-10 h-5 flex items-center bg-gray-700 rounded-full p-1 transition-colors ${useMagicHook ? theme.toggleActive : ''}`}>
-                    <div className={`bg-white w-3.5 h-3.5 rounded-full shadow-md transform transition-transform ${useMagicHook ? 'translate-x-5' : ''}`}></div>
+                  <div className={`w-11 h-6 flex items-center bg-gray-700 rounded-full p-1 transition-colors duration-300 ${useMagicHook ? theme.toggleActive : ''}`}>
+                    <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${useMagicHook ? 'translate-x-5' : ''}`}></div>
                   </div>
                </div>
-               {useMagicHook && (
-                 <p className="mt-2 text-xs text-gray-500 animate-fade-in-up">AI akan memberikan 3 variasi Hook tambahan dari database untuk opsi cadangan.</p>
-               )}
              </div>
           </div>
 
           {/* Image Upload (Optional) */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-300">
-                Referensi Gambar (Opsional)
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">
+                Visual Pendukung (Opsional)
               </label>
               {selectedImage && (
                 <button 
                   onClick={() => { setSelectedImage(null); if(fileInputRef.current) fileInputRef.current.value = ''; }}
-                  className="text-xs text-red-400 hover:text-red-300"
+                  className="text-xs text-red-400 hover:text-red-300 underline"
                 >
-                  Hapus Gambar
+                  Hapus
                 </button>
               )}
             </div>
@@ -333,7 +340,7 @@ ${activeResult.hashtags.join(' ')}
             {!selectedImage ? (
               <div 
                 onClick={() => fileInputRef.current?.click()}
-                className={`border-2 border-dashed border-gray-700 hover:border-gray-500 rounded-xl p-4 text-center cursor-pointer ${theme.subtleBg} hover:bg-gray-800 transition-colors group`}
+                className={`border-2 border-dashed border-gray-700 hover:border-gray-500 rounded-xl p-4 text-center cursor-pointer ${theme.subtleBg} hover:bg-gray-800 transition-colors group h-24 flex items-center justify-center`}
               >
                 <input 
                   type="file" 
@@ -342,9 +349,9 @@ ${activeResult.hashtags.join(' ')}
                   accept="image/*" 
                   onChange={handleFileChange} 
                 />
-                <div className="flex items-center justify-center gap-2">
+                <div className="flex flex-col items-center gap-1">
                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`text-gray-500 group-hover:${theme.textColor}`}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                   <span className="text-sm text-gray-500 group-hover:text-gray-300">Upload foto referensi</span>
+                   <span className="text-xs text-gray-400 group-hover:text-gray-300">Klik untuk upload foto produk/referensi</span>
                 </div>
               </div>
             ) : (
@@ -356,15 +363,15 @@ ${activeResult.hashtags.join(' ')}
 
           {/* Duration Selection */}
           <div className="space-y-3 mb-8">
-            <label className="block text-sm font-medium text-gray-300">
-              Pilih Durasi Video
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">
+              Durasi Video
             </label>
-            <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
               {DURATIONS.map((d) => (
                 <button
                   key={d}
                   onClick={() => setDuration(d)}
-                  className={`py-2 px-3 rounded-lg text-sm font-medium transition-all border ${
+                  className={`py-2 px-1 rounded-lg text-xs font-bold transition-all border ${
                     duration === d
                       ? `${theme.buttonBg} text-white shadow-md border-transparent`
                       : 'bg-gray-800 text-gray-400 border-gray-700 hover:bg-gray-700 hover:text-white'
@@ -380,7 +387,7 @@ ${activeResult.hashtags.join(' ')}
           <button
             onClick={handleGenerateClick}
             disabled={!topic.trim() || isGenerating}
-            className={`w-full py-4 rounded-xl font-bold text-lg transition-all transform active:scale-[0.98] ${
+            className={`w-full py-4 rounded-xl font-bold text-lg transition-all transform active:scale-[0.99] hover:scale-[1.01] ${
               !topic.trim() || isGenerating
                 ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
                 : `${theme.buttonBg} text-white shadow-xl ${theme.shadow}`
@@ -392,86 +399,85 @@ ${activeResult.hashtags.join(' ')}
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Sedang Meracik Ide...
+                Sedang Meracik Skrip...
               </span>
             ) : (
-              "GENERATE SKRIP"
+              "GENERATE SEKARANG ✨"
             )}
           </button>
-
-          {error && (
-            <div className="mt-4 p-3 bg-red-900/30 border border-red-800 rounded-lg text-red-300 text-sm text-center">
-              {error}
-            </div>
-          )}
         </div>
 
         {/* Results Section */}
         {activeResult && !isGenerating && (
-          <div className="animate-fade-in-up space-y-6">
+          <div className="animate-fade-in-up space-y-6 pb-10">
             
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-bold text-white">Hasil Generate</h3>
-              
-              {/* Version Tabs */}
-              {results.length > 1 && (
-                 <div className="flex gap-1 bg-gray-900 p-1 rounded-lg">
-                    {results.map((_, idx) => (
-                       <button
-                          key={idx}
-                          onClick={() => onVersionChange(idx)}
-                          className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${
-                             activeVersionIndex === idx 
-                             ? `${theme.buttonBg} text-white shadow` 
-                             : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                          }`}
-                       >
-                          V{idx + 1}
-                       </button>
-                    ))}
-                 </div>
-              )}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                  <h3 className="text-xl font-bold text-white">Hasil Skrip</h3>
+                  
+                  {/* Version Tabs */}
+                  {results.length > 1 && (
+                    <div className="flex gap-1 bg-gray-900 p-1 rounded-lg">
+                        {results.map((_, idx) => (
+                          <button
+                              key={idx}
+                              onClick={() => onVersionChange(idx)}
+                              className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${
+                                activeVersionIndex === idx 
+                                ? `${theme.buttonBg} text-white shadow` 
+                                : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                              }`}
+                          >
+                              V{idx + 1}
+                          </button>
+                        ))}
+                    </div>
+                  )}
+              </div>
 
               <button 
                 onClick={copyAll}
-                className={`flex items-center gap-2 ${theme.buttonBg} text-white px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-lg ml-2`}
+                className={`flex items-center justify-center gap-2 ${theme.buttonBg} text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-all shadow-lg hover:shadow-xl`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                Copy Semua
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy Semua Text
               </button>
             </div>
 
             {/* Cover Title Card */}
             <div className={`bg-gray-800 border-l-4 rounded-r-xl p-5 shadow-lg ${theme.borderColor} ${theme.shadow}`}>
-              <div className={`text-xs font-bold uppercase tracking-wider mb-1 ${theme.textColor}`}>Judul Sampul / Thumbnail</div>
-              <div className="text-lg md:text-xl font-bold text-white">{activeResult.coverTitle}</div>
+              <div className={`text-xs font-bold uppercase tracking-wider mb-2 opacity-80 ${theme.textColor}`}>Judul Sampul / Thumbnail</div>
+              <div className="text-xl md:text-2xl font-black text-white leading-tight">{activeResult.coverTitle}</div>
             </div>
 
              {/* Hook Card */}
              <div className={`bg-gray-800 border-l-4 rounded-r-xl p-5 shadow-lg ${theme.borderColor} ${theme.shadow}`}>
-              <div className="flex justify-between items-start mb-1">
-                 <div className={`text-xs font-bold uppercase tracking-wider ${theme.textColor}`}>Hook Pilihan (Database)</div>
-                 <button onClick={() => handleCopy(activeResult.hookUsed)} className="text-gray-500 hover:text-white text-xs">Copy</button>
+              <div className="flex justify-between items-start mb-2">
+                 <div className={`text-xs font-bold uppercase tracking-wider opacity-80 ${theme.textColor}`}>Hook (3 Detik Pertama)</div>
+                 <button onClick={() => handleCopy(activeResult.hookUsed)} className="text-gray-500 hover:text-white text-xs font-bold">COPY</button>
               </div>
-              <div className="text-lg font-medium text-gray-100 italic">"{activeResult.hookUsed}"</div>
+              <div className="text-lg font-medium text-gray-200 italic">"{activeResult.hookUsed}"</div>
             </div>
 
             {/* Magic Hook Alternatives (Interactive) */}
             {activeResult.alternativeHooks && activeResult.alternativeHooks.length > 0 && (
-               <div className={`bg-gray-900/50 border border-dashed border-gray-700 rounded-xl p-5`}>
-                 <div className={`text-xs font-bold uppercase tracking-wider mb-3 text-gray-400`}>✨ Magic Hook - Klik untuk buat Versi Baru</div>
+               <div className={`bg-gray-900 border border-dashed border-gray-700 rounded-xl p-5`}>
+                 <div className={`text-xs font-bold uppercase tracking-wider mb-4 text-gray-400 flex items-center gap-2`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    Alternatif Hook (Klik untuk Generate Ulang)
+                 </div>
                  <div className="grid gap-3">
                     {activeResult.alternativeHooks.map((altHook, idx) => (
                        <button 
                           key={idx} 
                           onClick={() => onRegenerateWithHook(altHook)}
-                          className="flex gap-3 items-center group text-left w-full hover:bg-gray-800 p-2 rounded-lg transition-colors border border-transparent hover:border-gray-700"
+                          className="flex gap-4 items-center group text-left w-full hover:bg-gray-800 p-3 rounded-lg transition-all border border-transparent hover:border-gray-700"
                        >
-                          <span className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-gray-800 group-hover:${theme.buttonBg} group-hover:text-white text-gray-500 transition-colors`}>
+                          <span className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-gray-800 group-hover:${theme.buttonBg} group-hover:text-white text-gray-500 transition-colors`}>
                              {idx + 1}
                           </span>
                           <p className="text-sm text-gray-300 italic flex-1 group-hover:text-white transition-colors">"{altHook}"</p>
-                          <span className="text-xs text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity font-medium px-2">
+                          <span className="hidden md:inline-block text-xs text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity font-bold px-2 whitespace-nowrap">
                              Buat Versi Ini &rarr;
                           </span>
                        </button>
@@ -482,14 +488,14 @@ ${activeResult.hashtags.join(' ')}
 
             {/* Visual Storyboard Section */}
             {activeResult.visualStoryboard && activeResult.visualStoryboard.length > 0 && (
-              <div className="space-y-4">
+              <div className="space-y-4 pt-4">
                  <div className="flex justify-between items-center">
                     <div className={`text-sm font-bold uppercase tracking-wider ${theme.textColor}`}>
-                        Visual Storyboard (Mode Potongan)
+                        Visual Storyboard Breakdown
                     </div>
                     <button 
                       onClick={handleCopyStoryboard}
-                      className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg border border-gray-700 hover:bg-gray-800 transition-colors ${theme.textColor}`}
+                      className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg border border-gray-700 hover:bg-gray-800 transition-colors text-gray-400 hover:text-white`}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                       Copy Storyboard
@@ -499,12 +505,12 @@ ${activeResult.hashtags.join(' ')}
                     {activeResult.visualStoryboard.map((scene, idx) => {
                        const colorConfig = SCENE_COLORS[scene.color] || SCENE_COLORS.blue;
                        return (
-                         <div key={idx} className={`bg-gray-900 border-l-4 ${colorConfig.border} rounded-r-xl p-4 shadow-md`}>
-                            <div className={`flex items-center gap-2 mb-2 font-mono text-sm font-bold ${colorConfig.text}`}>
+                         <div key={idx} className={`bg-gray-900 border-l-4 ${colorConfig.border} rounded-r-xl p-4 shadow-md hover:translate-x-1 transition-transform`}>
+                            <div className={`flex items-center gap-2 mb-2 font-mono text-xs font-bold ${colorConfig.text} uppercase tracking-wider`}>
                                <span>{colorConfig.icon}</span>
                                <span>SCENE {scene.sceneNumber}</span>
                             </div>
-                            <p className="text-gray-300 text-sm leading-relaxed">
+                            <p className="text-gray-300 text-sm leading-relaxed font-medium">
                                "{scene.narration}"
                             </p>
                          </div>
@@ -515,10 +521,10 @@ ${activeResult.hashtags.join(' ')}
             )}
 
             {/* Script Body (Full) */}
-            <div className={`bg-gray-800 border-l-4 rounded-r-xl p-5 shadow-lg ${theme.borderColor} ${theme.shadow}`}>
-               <div className="flex justify-between items-center mb-3">
-                 <div className={`text-xs font-bold uppercase tracking-wider ${theme.textColor}`}>Isi Skrip (Full)</div>
-                 <button onClick={() => handleCopy(activeResult.scriptContent)} className="text-gray-400 hover:text-white text-xs">Copy</button>
+            <div className={`bg-gray-800 border-l-4 rounded-r-xl p-6 shadow-lg ${theme.borderColor} ${theme.shadow} mt-6`}>
+               <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-3">
+                 <div className={`text-xs font-bold uppercase tracking-wider ${theme.textColor}`}>Naskah Lengkap (Voiceover)</div>
+                 <button onClick={() => handleCopy(activeResult.scriptContent)} className="text-gray-400 hover:text-white text-xs font-bold">COPY TEXT</button>
                </div>
                <div className="whitespace-pre-wrap text-gray-200 leading-relaxed font-sans text-sm md:text-base">
                  {activeResult.scriptContent}
@@ -529,20 +535,20 @@ ${activeResult.hashtags.join(' ')}
             <div className="grid md:grid-cols-2 gap-6">
               <div className={`bg-gray-800 rounded-xl p-5 shadow-lg border-2 ${theme.borderColor} ${theme.shadow}`}>
                 <div className="flex justify-between items-center mb-2">
-                  <div className={`text-xs font-bold uppercase ${theme.textColor}`}>Caption Singkat</div>
-                  <button onClick={() => handleCopy(activeResult.caption)} className="text-gray-500 hover:text-white text-xs">Copy</button>
+                  <div className={`text-xs font-bold uppercase ${theme.textColor}`}>Caption</div>
+                  <button onClick={() => handleCopy(activeResult.caption)} className="text-gray-500 hover:text-white text-xs font-bold">COPY</button>
                 </div>
-                <p className="text-sm text-gray-300">{activeResult.caption}</p>
+                <p className="text-sm text-gray-300 whitespace-pre-line">{activeResult.caption}</p>
               </div>
 
               <div className={`bg-gray-800 rounded-xl p-5 shadow-lg border-2 ${theme.borderColor} ${theme.shadow}`}>
                  <div className="flex justify-between items-center mb-2">
                   <div className={`text-xs font-bold uppercase ${theme.textColor}`}>Hashtags</div>
-                  <button onClick={() => handleCopy(activeResult.hashtags.join(' '))} className="text-gray-500 hover:text-white text-xs">Copy</button>
+                  <button onClick={() => handleCopy(activeResult.hashtags.join(' '))} className="text-gray-500 hover:text-white text-xs font-bold">COPY</button>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {activeResult.hashtags.map((tag, idx) => (
-                    <span key={idx} className={`text-sm ${theme.textColor} opacity-90`}>#{tag.replace('#', '')}</span>
+                    <span key={idx} className={`text-xs font-medium px-2 py-1 rounded-md bg-gray-900 ${theme.textColor}`}>#{tag.replace('#', '')}</span>
                   ))}
                 </div>
               </div>
@@ -550,9 +556,6 @@ ${activeResult.hashtags.join(' ')}
 
           </div>
         )}
-
-         {/* Spacer */}
-         <div className="h-10"></div>
       </div>
     </div>
   );

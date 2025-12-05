@@ -1,26 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { ScriptGenerator } from './components/ScriptGenerator';
 import { HistoryFolder } from './components/HistoryFolder';
+import { ApiKeyModal } from './components/ApiKeyModal';
+import { Toast } from './components/Toast';
 import { Platform, PLATFORM_LABELS, ScriptDuration, GeneratedScript, SavedScript, ScriptOptions } from './types';
 import { generateScript } from './services/gemini';
-import { saveScriptToStorage } from './services/storage';
+import { saveScriptToStorage, getApiKey, saveApiKey, removeApiKey, saveSession, getSession } from './services/storage';
 
 export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  // API Key State
+  const [apiKey, setApiKey] = useState<string | null>(() => getApiKey());
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+
+  // App State
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>('general');
   const [viewMode, setViewMode] = useState<'generator' | 'history'>('generator');
-  
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
   // Script Generation States
   const [isGenerating, setIsGenerating] = useState(false);
-  
-  // Versioning State (Multiverse)
   const [scriptVersions, setScriptVersions] = useState<GeneratedScript[]>([]);
   const [activeVersionIndex, setActiveVersionIndex] = useState(0);
   
-  const [error, setError] = useState<string | null>(null);
-
-  // Store current generation params to allow regeneration
+  // Persistence Params for Inputs
   const [currentParams, setCurrentParams] = useState<{
     topic: string;
     duration: ScriptDuration;
@@ -28,37 +33,105 @@ export default function App() {
     image?: string;
   } | null>(null);
 
+  // Load Session & Check API Key on Mount
+  useEffect(() => {
+    // 1. Check Key
+    if (!apiKey) {
+      setShowApiKeyModal(true);
+    }
+
+    // 2. Load Session (Persistence)
+    const savedSession = getSession();
+    if (savedSession) {
+      setCurrentParams({
+        topic: savedSession.topic,
+        duration: savedSession.duration,
+        options: savedSession.options,
+        image: undefined // Images too large for session usually, skip
+      });
+      setSelectedPlatform(savedSession.platform);
+      setScriptVersions(savedSession.results);
+      setActiveVersionIndex(savedSession.activeVersionIndex);
+    }
+  }, []);
+
+  // Save Session on Changes
+  useEffect(() => {
+    if (currentParams) {
+      saveSession({
+        topic: currentParams.topic,
+        duration: currentParams.duration,
+        platform: selectedPlatform,
+        options: currentParams.options,
+        results: scriptVersions,
+        activeVersionIndex
+      });
+    }
+  }, [currentParams, selectedPlatform, scriptVersions, activeVersionIndex]);
+
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+  };
+
+  const handleSaveApiKey = (key: string) => {
+    saveApiKey(key);
+    setApiKey(key);
+    setShowApiKeyModal(false);
+    showToast("API Key berhasil disimpan!", "success");
+  };
+
+  const handleResetApiKey = () => {
+    if (confirm("Apakah Anda yakin ingin mengganti API Key?")) {
+      removeApiKey();
+      setApiKey(null);
+      setShowApiKeyModal(true);
+      setIsSidebarOpen(false);
+    }
+  };
+
   const handleGenerate = async (topic: string, duration: ScriptDuration, options: ScriptOptions, image?: string) => {
+    if (!apiKey) {
+      setShowApiKeyModal(true);
+      return;
+    }
+
     setIsGenerating(true);
-    setError(null);
-    setScriptVersions([]); // Reset versions for new topic
+    // New generation = reset versions
+    setScriptVersions([]); 
     setActiveVersionIndex(0);
     setCurrentParams({ topic, duration, options, image });
 
     try {
-      const generatedData = await generateScript(topic, duration, selectedPlatform, options, image);
+      const generatedData = await generateScript(apiKey, topic, duration, selectedPlatform, options, image);
       setScriptVersions([generatedData]);
       
-      // Auto save on success
       saveScriptToStorage(topic, selectedPlatform, generatedData);
+      showToast("Skrip berhasil dibuat!", "success");
+
     } catch (err: any) {
-      setError(`Gagal membuat skrip. Error: ${err.message || "Pastikan konfigurasi API Key benar dan koneksi lancar."}`);
       console.error(err);
+      if (err.message.includes('API Key')) {
+        showToast("API Key tidak valid. Silakan ganti.", "error");
+        setShowApiKeyModal(true);
+      } else {
+        showToast(`Gagal: ${err.message}`, "error");
+      }
     } finally {
       setIsGenerating(false);
     }
   };
 
   const handleRegenerateWithHook = async (specificHook: string) => {
-    if (!currentParams) return;
+    if (!currentParams || !apiKey) return;
 
     setIsGenerating(true);
-    setError(null);
 
     try {
       const regOptions = { ...currentParams.options, useMagicHook: false };
 
       const generatedData = await generateScript(
+        apiKey,
         currentParams.topic, 
         currentParams.duration, 
         selectedPlatform, 
@@ -72,10 +145,10 @@ export default function App() {
       setActiveVersionIndex(newVersions.length - 1); 
 
       saveScriptToStorage(currentParams.topic + " (Varian Hook)", selectedPlatform, generatedData);
+      showToast("Variasi skrip berhasil dibuat!", "success");
 
     } catch (err: any) {
-      setError(`Gagal membuat variasi skrip. ${err.message}`);
-      console.error(err);
+      showToast(`Gagal variasi: ${err.message}`, "error");
     } finally {
       setIsGenerating(false);
     }
@@ -96,9 +169,10 @@ export default function App() {
     setActiveVersionIndex(0);
     setSelectedPlatform(script.platform);
     
+    // Restore params context for regeneration purposes
     setCurrentParams({
         topic: script.topic,
-        duration: '25s',
+        duration: '25s', // Default fallback
         options: {
             useCustomAudience: false,
             audience: 'Umum / Semua Kalangan',
@@ -110,14 +184,15 @@ export default function App() {
     });
 
     setViewMode('generator');
+    showToast("Skrip dimuat dari history", "success");
   };
 
   const handleNewScript = () => {
     setScriptVersions([]);
     setActiveVersionIndex(0);
-    setError(null);
     setCurrentParams(null);
     setViewMode('generator');
+    showToast("Siap membuat skrip baru", "success");
   };
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
@@ -125,33 +200,41 @@ export default function App() {
   return (
     <div className="flex h-screen w-full bg-gray-950 text-gray-100 overflow-hidden font-sans">
       
+      {/* Toast Notification */}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+      {/* API Key Modal (BYOK) */}
+      {showApiKeyModal && <ApiKeyModal onSave={handleSaveApiKey} />}
+
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-20 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-20 lg:hidden backdrop-blur-sm"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-30 w-64 bg-gray-900 border-r border-gray-800 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`fixed inset-y-0 left-0 z-30 w-72 bg-gray-900 border-r border-gray-800 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <Sidebar 
           selectedPlatform={viewMode === 'history' ? 'history' : selectedPlatform} 
           onSelectPlatform={handleSidebarSelect}
           onNewChat={handleNewScript}
+          onResetApiKey={handleResetApiKey}
         />
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-full relative">
-        <header className="flex items-center justify-between px-4 py-3 border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm lg:hidden">
+      <div className="flex-1 flex flex-col h-full relative w-full">
+        {/* Mobile Header */}
+        <header className="flex items-center justify-between px-4 py-3 border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm lg:hidden z-10">
           <button 
             onClick={toggleSidebar}
-            className="p-2 -ml-2 rounded-md hover:bg-gray-800 text-gray-400 hover:text-white"
+            className="p-2 -ml-2 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
           </button>
-          <span className="font-semibold text-sm truncate">
+          <span className="font-bold text-sm truncate text-white">
              {viewMode === 'history' ? 'Folder Data' : PLATFORM_LABELS[selectedPlatform]}
           </span>
           <div className="w-8" />
@@ -169,7 +252,8 @@ export default function App() {
               isGenerating={isGenerating}
               results={scriptVersions}
               activeVersionIndex={activeVersionIndex}
-              error={error}
+              error={null} // We use Toast now
+              initialTopic={currentParams?.topic || ''}
             />
           )}
         </main>

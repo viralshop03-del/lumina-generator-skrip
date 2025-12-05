@@ -3,6 +3,7 @@ import { Platform, PLATFORM_LABELS, ScriptDuration, GeneratedScript, ScriptOptio
 import { HOOK_DATABASE } from "../data/hooks";
 
 export const generateScript = async (
+  apiKey: string,
   topic: string,
   duration: ScriptDuration,
   platform: Platform,
@@ -11,13 +12,11 @@ export const generateScript = async (
   specificHook?: string
 ): Promise<GeneratedScript> => {
   
-  // The API key must be obtained exclusively from the environment variable process.env.API_KEY
-  const apiKey = process.env.API_KEY;
   if (!apiKey) {
-    throw new Error("API Key is missing. Please ensure process.env.API_KEY is configured.");
+    throw new Error("API Key belum disetting. Silakan masukkan API Key Anda.");
   }
 
-  // Initialize client with process.env.API_KEY
+  // Initialize client with user provided apiKey
   const ai = new GoogleGenAI({ apiKey: apiKey });
   const modelId = 'gemini-2.5-flash';
 
@@ -155,14 +154,17 @@ export const generateScript = async (
     });
 
     if (!response.text) {
-      throw new Error("No response generated");
+      throw new Error("No response generated from Gemini.");
     }
 
     const jsonResponse = JSON.parse(response.text) as GeneratedScript;
     return jsonResponse;
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini API Error:", error);
+    if (error.message?.includes('403') || error.message?.includes('API_KEY_INVALID')) {
+        throw new Error("API Key tidak valid atau tidak memiliki izin akses.");
+    }
     throw error;
   }
 };
