@@ -1,8 +1,6 @@
-
 import { GeneratedScript, Platform, SavedScript } from "../types";
 
 const STORAGE_KEY = 'saved_scripts_v1';
-const API_KEY_STORAGE = 'gemini_user_api_key';
 
 // --- Script Storage ---
 
@@ -19,13 +17,12 @@ export const saveScriptToStorage = (
     createdAt: Date.now(),
   };
 
-  const existingData = getSavedScripts();
-  const newData = [newScript, ...existingData];
-  
   try {
+    const existingData = getSavedScripts();
+    const newData = [newScript, ...existingData];
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newData));
   } catch (e) {
-    console.error("Gagal menyimpan ke local storage (mungkin penuh)", e);
+    console.error("Gagal menyimpan ke local storage (mungkin penuh atau diblokir)", e);
   }
 
   return newScript;
@@ -36,28 +33,19 @@ export const getSavedScripts = (): SavedScript[] => {
     const data = localStorage.getItem(STORAGE_KEY);
     return data ? JSON.parse(data) : [];
   } catch (e) {
-    console.error("Error parsing saved scripts", e);
+    console.error("Error parsing saved scripts or storage access denied", e);
     return [];
   }
 };
 
 export const deleteSavedScript = (id: string): SavedScript[] => {
-  const current = getSavedScripts();
-  const updated = current.filter(script => script.id !== id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-  return updated;
-};
-
-// --- API Key Storage (BYOK) ---
-
-export const getStoredApiKey = (): string | null => {
-  return localStorage.getItem(API_KEY_STORAGE);
-};
-
-export const saveStoredApiKey = (key: string) => {
-  localStorage.setItem(API_KEY_STORAGE, key);
-};
-
-export const removeStoredApiKey = () => {
-  localStorage.removeItem(API_KEY_STORAGE);
+  try {
+    const current = getSavedScripts();
+    const updated = current.filter(script => script.id !== id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    return updated;
+  } catch (e) {
+    console.error("Error deleting script", e);
+    return [];
+  }
 };

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Platform, PLATFORM_LABELS } from '../types';
 
@@ -6,10 +5,9 @@ interface SidebarProps {
   onNewChat: () => void;
   selectedPlatform: Platform | 'history'; // Add history type locally for UI state
   onSelectPlatform: (platform: Platform | 'history') => void;
-  onResetKey: () => void; // New prop for resetting API Key
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ onNewChat, selectedPlatform, onSelectPlatform, onResetKey }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ onNewChat, selectedPlatform, onSelectPlatform }) => {
   
   const platforms: { id: Platform, icon: React.ReactNode }[] = [
     { 
@@ -92,16 +90,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNewChat, selectedPlatform, o
         </div>
       </div>
 
-      {/* Settings/Reset Key Section */}
-      <div className="px-4 py-2 mt-auto border-t border-gray-800">
-          <button 
-             onClick={onResetKey}
-             className="w-full flex items-center gap-2 text-xs text-gray-500 hover:text-red-400 transition-colors py-2"
-          >
-             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-             Ganti API Key
-          </button>
-      </div>
+      {/* Settings Section Removed (API Key reset) */}
+      <div className="mt-auto border-t border-gray-800"></div>
 
       <div className="p-4 pt-2">
         <button

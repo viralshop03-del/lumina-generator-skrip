@@ -1,21 +1,16 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { ScriptGenerator } from './components/ScriptGenerator';
 import { HistoryFolder } from './components/HistoryFolder';
-import { ApiKeyModal } from './components/ApiKeyModal';
 import { Platform, PLATFORM_LABELS, ScriptDuration, GeneratedScript, SavedScript, ScriptOptions } from './types';
 import { generateScript } from './services/gemini';
-import { saveScriptToStorage, getStoredApiKey, saveStoredApiKey, removeStoredApiKey } from './services/storage';
+import { saveScriptToStorage } from './services/storage';
 
 export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>('general');
   const [viewMode, setViewMode] = useState<'generator' | 'history'>('generator');
   
-  // API Key State
-  const [apiKey, setApiKey] = useState<string | null>(null);
-
   // Script Generation States
   const [isGenerating, setIsGenerating] = useState(false);
   
@@ -33,32 +28,7 @@ export default function App() {
     image?: string;
   } | null>(null);
 
-  useEffect(() => {
-    // Check for stored API key on mount
-    const storedKey = getStoredApiKey();
-    if (storedKey) {
-      setApiKey(storedKey);
-    }
-  }, []);
-
-  const handleSaveApiKey = (key: string) => {
-    saveStoredApiKey(key);
-    setApiKey(key);
-  };
-
-  const handleResetApiKey = () => {
-    if (confirm("Apakah Anda yakin ingin menghapus API Key? Anda harus memasukkannya lagi nanti.")) {
-       removeStoredApiKey();
-       setApiKey(null);
-    }
-  };
-
   const handleGenerate = async (topic: string, duration: ScriptDuration, options: ScriptOptions, image?: string) => {
-    if (!apiKey) {
-        setError("API Key tidak ditemukan. Mohon masukkan API Key terlebih dahulu.");
-        return;
-    }
-
     setIsGenerating(true);
     setError(null);
     setScriptVersions([]); // Reset versions for new topic
@@ -66,13 +36,13 @@ export default function App() {
     setCurrentParams({ topic, duration, options, image });
 
     try {
-      const generatedData = await generateScript(topic, duration, selectedPlatform, options, apiKey, image);
+      const generatedData = await generateScript(topic, duration, selectedPlatform, options, image);
       setScriptVersions([generatedData]);
       
       // Auto save on success
       saveScriptToStorage(topic, selectedPlatform, generatedData);
     } catch (err: any) {
-      setError(`Gagal membuat skrip. Error: ${err.message || "Pastikan API Key valid dan koneksi lancar."}`);
+      setError(`Gagal membuat skrip. Error: ${err.message || "Pastikan konfigurasi API Key benar dan koneksi lancar."}`);
       console.error(err);
     } finally {
       setIsGenerating(false);
@@ -80,14 +50,12 @@ export default function App() {
   };
 
   const handleRegenerateWithHook = async (specificHook: string) => {
-    if (!currentParams || !apiKey) return;
+    if (!currentParams) return;
 
     setIsGenerating(true);
     setError(null);
 
     try {
-      // Force useMagicHook to false for regeneration to avoid infinite recursion or confusion
-      // but keep other audience/goal settings
       const regOptions = { ...currentParams.options, useMagicHook: false };
 
       const generatedData = await generateScript(
@@ -95,17 +63,14 @@ export default function App() {
         currentParams.duration, 
         selectedPlatform, 
         regOptions, 
-        apiKey,
         currentParams.image,
-        specificHook // Pass the specific hook here
+        specificHook 
       );
 
-      // Append new version
       const newVersions = [...scriptVersions, generatedData];
       setScriptVersions(newVersions);
-      setActiveVersionIndex(newVersions.length - 1); // Switch to new version
+      setActiveVersionIndex(newVersions.length - 1); 
 
-      // Save as a new entry (optional, but good for history)
       saveScriptToStorage(currentParams.topic + " (Varian Hook)", selectedPlatform, generatedData);
 
     } catch (err: any) {
@@ -127,15 +92,13 @@ export default function App() {
   };
 
   const handleLoadFromHistory = (script: SavedScript) => {
-    // When loading from history, we treat it as a single version
     setScriptVersions([script]);
     setActiveVersionIndex(0);
     setSelectedPlatform(script.platform);
     
-    // Set params so regeneration is possible
     setCurrentParams({
         topic: script.topic,
-        duration: '25s', // Default or need to save duration in history to be accurate
+        duration: '25s',
         options: {
             useCustomAudience: false,
             audience: 'Umum / Semua Kalangan',
@@ -162,9 +125,6 @@ export default function App() {
   return (
     <div className="flex h-screen w-full bg-gray-950 text-gray-100 overflow-hidden font-sans">
       
-      {/* API Key Modal Interceptor */}
-      {!apiKey && <ApiKeyModal onSave={handleSaveApiKey} />}
-
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div 
@@ -179,7 +139,6 @@ export default function App() {
           selectedPlatform={viewMode === 'history' ? 'history' : selectedPlatform} 
           onSelectPlatform={handleSidebarSelect}
           onNewChat={handleNewScript}
-          onResetKey={handleResetApiKey}
         />
       </div>
 

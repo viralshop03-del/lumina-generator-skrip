@@ -1,24 +1,23 @@
-
 import { GoogleGenAI } from "@google/genai";
 import { Platform, PLATFORM_LABELS, ScriptDuration, GeneratedScript, ScriptOptions } from "../types";
 import { HOOK_DATABASE } from "../data/hooks";
 
-// Function now requires apiKey to be passed in
 export const generateScript = async (
   topic: string,
   duration: ScriptDuration,
   platform: Platform,
   options: ScriptOptions,
-  apiKey: string, // Changed: apiKey is now a required parameter
   imageBase64?: string,
   specificHook?: string
 ): Promise<GeneratedScript> => {
   
+  // The API key must be obtained exclusively from the environment variable process.env.API_KEY
+  const apiKey = process.env.API_KEY;
   if (!apiKey) {
-    throw new Error("API Key is missing. Please provide a valid Gemini API Key.");
+    throw new Error("API Key is missing. Please ensure process.env.API_KEY is configured.");
   }
 
-  // Initialize client with the user's key
+  // Initialize client with process.env.API_KEY
   const ai = new GoogleGenAI({ apiKey: apiKey });
   const modelId = 'gemini-2.5-flash';
 
