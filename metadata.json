@@ -1,0 +1,5 @@
+{
+  "name": "Generator Skrip Konten",
+  "description": "A conversational AI interface capable of analyzing text and images. Since direct external link access is restricted, users can paste content or upload screenshots from Google Drive for analysis.",
+  "requestFramePermissions": []
+}
