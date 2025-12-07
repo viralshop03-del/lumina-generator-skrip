@@ -1,5 +1,6 @@
+
 import React, { useState, useRef, useEffect } from 'react';
-import { ScriptGeneratorProps, ScriptDuration, Platform, StoryboardScene, AudienceType, ToneType, ContentGoal } from '../types';
+import { ScriptGeneratorProps, ScriptDuration, Platform, StoryboardScene, AudienceType, ToneType, ContentGoal, ScriptStrategy } from '../types';
 
 interface ExtendedProps extends ScriptGeneratorProps {
     initialTopic?: string;
@@ -27,11 +28,24 @@ const TONES: ToneType[] = [
 
 const GOALS: ContentGoal[] = [
   'Viral / Views (Broad)', 
-  'Jualan (Hard Sell)', 
+  'Jualan (Hard Sell)' , 
   'Edukasi / Save', 
   'Interaksi / Komen', 
   'Followers Baru', 
   'Klik Link di Bio'
+];
+
+const STRATEGIES: { id: ScriptStrategy; label: string; desc: string }[] = [
+  { 
+    id: 'faster_api', 
+    label: 'Formula Standar (FasterAPI)', 
+    desc: 'Filmic Flow, Emosional, & Storytelling yang mengalir.' 
+  },
+  { 
+    id: 'contrarian', 
+    label: 'Brutal Truth (Contrarian)', 
+    desc: 'Tegas, Menampar Realita, Fakta Pahit, & Solusi Keras.' 
+  }
 ];
 
 const THEMES: Record<Platform, { 
@@ -137,6 +151,9 @@ export const ScriptGenerator: React.FC<ExtendedProps> = ({
 
   const [useMagicHook, setUseMagicHook] = useState(false);
 
+  // Strategy State
+  const [strategy, setStrategy] = useState<ScriptStrategy>('faster_api');
+
   const theme = THEMES[selectedPlatform];
   const activeResult = results[activeVersionIndex];
 
@@ -153,7 +170,6 @@ export const ScriptGenerator: React.FC<ExtendedProps> = ({
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
-    // Alert removed, handled by parent toast or just simple feedback
   };
 
   const handleCopyStoryboard = () => {
@@ -201,7 +217,8 @@ ${activeResult.hashtags.join(' ')}
       tone,
       useCustomGoal,
       goal,
-      useMagicHook
+      useMagicHook,
+      strategy
     }, selectedImage || undefined);
   }
 
@@ -233,6 +250,36 @@ ${activeResult.hashtags.join(' ')}
               placeholder="Contoh: Tips diet tanpa menyiksa, Review baju lebaran, Cara investasi untuk pemula..."
               className={`w-full bg-gray-950 border border-gray-700 rounded-xl p-4 text-white placeholder-gray-600 focus:outline-none focus:ring-2 ${theme.ringColor} focus:border-transparent transition-all resize-none h-32 text-sm md:text-base`}
             />
+          </div>
+
+          {/* STRATEGY SELECTION (NEW) */}
+          <div className="mb-6 space-y-3">
+             <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">
+                Pilih Strategi / Formula Skrip
+             </label>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {STRATEGIES.map((strat) => (
+                  <button
+                    key={strat.id}
+                    onClick={() => setStrategy(strat.id)}
+                    className={`text-left p-4 rounded-xl border transition-all duration-200 flex flex-col gap-1 ${
+                       strategy === strat.id 
+                       ? `${theme.subtleBg} ${theme.borderColor} shadow-md` 
+                       : 'bg-gray-950 border-gray-800 hover:border-gray-700'
+                    }`}
+                  >
+                     <div className="flex items-center gap-2">
+                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${strategy === strat.id ? theme.borderColor : 'border-gray-600'}`}>
+                           {strategy === strat.id && <div className={`w-2 h-2 rounded-full ${theme.buttonBg}`}></div>}
+                        </div>
+                        <span className={`font-bold text-sm ${strategy === strat.id ? 'text-white' : 'text-gray-400'}`}>
+                           {strat.label}
+                        </span>
+                     </div>
+                     <p className="text-xs text-gray-500 ml-6">{strat.desc}</p>
+                  </button>
+                ))}
+             </div>
           </div>
 
           {/* Pro Features Toggle Section */}

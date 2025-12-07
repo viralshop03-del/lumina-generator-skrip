@@ -5,10 +5,9 @@ interface SidebarProps {
   onNewChat: () => void;
   selectedPlatform: Platform | 'history'; 
   onSelectPlatform: (platform: Platform | 'history') => void;
-  onResetApiKey: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ onNewChat, selectedPlatform, onSelectPlatform, onResetApiKey }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ onNewChat, selectedPlatform, onSelectPlatform }) => {
   
   const platforms: { id: Platform, icon: React.ReactNode }[] = [
     { 
@@ -98,14 +97,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNewChat, selectedPlatform, o
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           <span>Buat Skrip Baru</span>
-        </button>
-
-        <button
-          onClick={onResetApiKey}
-          className="w-full flex items-center justify-center gap-2 bg-transparent hover:bg-gray-800 text-gray-500 hover:text-red-400 py-2 px-4 rounded-lg transition-colors text-xs"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
-          <span>Ganti API Key</span>
         </button>
       </div>
     </div>

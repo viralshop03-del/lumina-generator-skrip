@@ -2,19 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { ScriptGenerator } from './components/ScriptGenerator';
 import { HistoryFolder } from './components/HistoryFolder';
-import { ApiKeyModal } from './components/ApiKeyModal';
 import { Toast } from './components/Toast';
 import { Platform, PLATFORM_LABELS, ScriptDuration, GeneratedScript, SavedScript, ScriptOptions } from './types';
 import { generateScript } from './services/gemini';
-import { saveScriptToStorage, getApiKey, saveApiKey, removeApiKey, saveSession, getSession } from './services/storage';
+import { saveScriptToStorage, saveSession, getSession } from './services/storage';
 
 export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
-  // API Key State
-  const [apiKey, setApiKey] = useState<string | null>(() => getApiKey());
-  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
-
   // App State
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>('general');
   const [viewMode, setViewMode] = useState<'generator' | 'history'>('generator');
@@ -33,14 +28,9 @@ export default function App() {
     image?: string;
   } | null>(null);
 
-  // Load Session & Check API Key on Mount
+  // Load Session on Mount
   useEffect(() => {
-    // 1. Check Key
-    if (!apiKey) {
-      setShowApiKeyModal(true);
-    }
-
-    // 2. Load Session (Persistence)
+    // Load Session (Persistence)
     const savedSession = getSession();
     if (savedSession) {
       setCurrentParams({
@@ -74,28 +64,7 @@ export default function App() {
     setToast({ message, type });
   };
 
-  const handleSaveApiKey = (key: string) => {
-    saveApiKey(key);
-    setApiKey(key);
-    setShowApiKeyModal(false);
-    showToast("API Key berhasil disimpan!", "success");
-  };
-
-  const handleResetApiKey = () => {
-    if (confirm("Apakah Anda yakin ingin mengganti API Key?")) {
-      removeApiKey();
-      setApiKey(null);
-      setShowApiKeyModal(true);
-      setIsSidebarOpen(false);
-    }
-  };
-
   const handleGenerate = async (topic: string, duration: ScriptDuration, options: ScriptOptions, image?: string) => {
-    if (!apiKey) {
-      setShowApiKeyModal(true);
-      return;
-    }
-
     setIsGenerating(true);
     // New generation = reset versions
     setScriptVersions([]); 
@@ -103,7 +72,7 @@ export default function App() {
     setCurrentParams({ topic, duration, options, image });
 
     try {
-      const generatedData = await generateScript(apiKey, topic, duration, selectedPlatform, options, image);
+      const generatedData = await generateScript(topic, duration, selectedPlatform, options, image);
       setScriptVersions([generatedData]);
       
       saveScriptToStorage(topic, selectedPlatform, generatedData);
@@ -112,8 +81,7 @@ export default function App() {
     } catch (err: any) {
       console.error(err);
       if (err.message.includes('API Key')) {
-        showToast("API Key tidak valid. Silakan ganti.", "error");
-        setShowApiKeyModal(true);
+        showToast("Konfigurasi API Key server bermasalah.", "error");
       } else {
         showToast(`Gagal: ${err.message}`, "error");
       }
@@ -123,7 +91,7 @@ export default function App() {
   };
 
   const handleRegenerateWithHook = async (specificHook: string) => {
-    if (!currentParams || !apiKey) return;
+    if (!currentParams) return;
 
     setIsGenerating(true);
 
@@ -131,7 +99,6 @@ export default function App() {
       const regOptions = { ...currentParams.options, useMagicHook: false };
 
       const generatedData = await generateScript(
-        apiKey,
         currentParams.topic, 
         currentParams.duration, 
         selectedPlatform, 
@@ -179,7 +146,8 @@ export default function App() {
             tone: 'Santai & Lucu',
             useCustomGoal: false,
             goal: 'Viral / Views (Broad)',
-            useMagicHook: true
+            useMagicHook: true,
+            strategy: 'faster_api' // Default fallback for old data
         }
     });
 
@@ -203,9 +171,6 @@ export default function App() {
       {/* Toast Notification */}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      {/* API Key Modal (BYOK) */}
-      {showApiKeyModal && <ApiKeyModal onSave={handleSaveApiKey} />}
-
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div 
@@ -220,7 +185,6 @@ export default function App() {
           selectedPlatform={viewMode === 'history' ? 'history' : selectedPlatform} 
           onSelectPlatform={handleSidebarSelect}
           onNewChat={handleNewScript}
-          onResetApiKey={handleResetApiKey}
         />
       </div>
 

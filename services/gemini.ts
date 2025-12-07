@@ -3,7 +3,6 @@ import { Platform, PLATFORM_LABELS, ScriptDuration, GeneratedScript, ScriptOptio
 import { HOOK_DATABASE } from "../data/hooks";
 
 export const generateScript = async (
-  apiKey: string,
   topic: string,
   duration: ScriptDuration,
   platform: Platform,
@@ -12,12 +11,8 @@ export const generateScript = async (
   specificHook?: string
 ): Promise<GeneratedScript> => {
   
-  if (!apiKey) {
-    throw new Error("API Key belum disetting. Silakan masukkan API Key Anda.");
-  }
-
-  // Initialize client with user provided apiKey
-  const ai = new GoogleGenAI({ apiKey: apiKey });
+  // Use API key from environment variable as per strict guidelines
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const modelId = 'gemini-2.5-flash';
 
   const parts: any[] = [];
@@ -41,7 +36,7 @@ export const generateScript = async (
   if (options.useCustomAudience) {
     customInstructions += `
     TARGET AUDIENCE: ${options.audience}
-    TONE OF VOICE: ${options.tone}
+    TONE OF VOICE (Custom Override): ${options.tone}
     - Adjust the vocabulary and style to fit this specific audience and tone perfectly.
     `;
   }
@@ -69,6 +64,38 @@ export const generateScript = async (
       hookConstraint = `1. **SPECIFIC HOOK**: You MUST use this specific hook template: "${specificHook}". Fill in the blanks (_______) relevant to the topic. Do NOT choose another hook.`;
   }
 
+  // LOGIKA PEMILIHAN STRATEGI
+  let systemPersonaAndStrategy = "";
+
+  if (options.strategy === 'contrarian') {
+    // --- STRATEGI: CONTRARIAN (BRUTAL TRUTH) ---
+    systemPersonaAndStrategy = `
+    You are a "Contrarian Content Strategist". 
+    Your style is SHARP, BRUTAL TRUTH, and REALITY-SLAPPING, yet Professional and Elegant.
+    Avoid banned words or hate speech, but be brutally honest.
+    
+    STRATEGY: BRUTAL TRUTH
+    1. **HOOK (0-3s)**: Attack the "Excuse" or "Mental Block" directly. Make them feel angry, sad, or immediately realized. (MUST USE HOOK DATABASE).
+    2. **BODY**: Explain why their old mindset is dangerous/harmful using cold, hard facts.
+    3. **SOLUTION**: Offer the solution as a "Hard Pill to Swallow" or "Obat Keras" they MUST take to survive/change.
+    
+    TONE: Tegas (Firm), Tidak Basa-basi (No Fluff), Otoritatif (Authoritative), but Edukatif.
+    `;
+  } else {
+    // --- STRATEGI: FASTERAPI (STANDARD) ---
+    systemPersonaAndStrategy = `
+    You are an expert Social Media Scriptwriter using the "MASTER FORMULA FASTERAPI".
+    
+    STRATEGY: FASTERAPI
+    1. **INTI IDE TUNGGAL**: One script = One specific problem.
+    2. **GARIS PAS (Problem - Agitation - Solution)**:
+       - P: Hook from Database (Simple, familiar).
+       - A: Agitate/Sharpen the problem.
+       - S: Concrete Solution + Cliffhanger.
+    3. **FILMIC FLOW**: Smooth, hypnotic flow. Each sentence pulls the next.
+    `;
+  }
+
   const prompt = `
   TOPIC: ${topic}
   TARGET PLATFORM: ${PLATFORM_LABELS[platform]}
@@ -81,32 +108,8 @@ export const generateScript = async (
   parts.push({ text: prompt });
 
   const systemInstruction = `
-  You are an expert Social Media Scriptwriter and Copywriter using the "MASTER FORMULA FASTERAPI".
-  Your task is to generate a viral-worthy script based on the user's topic and selected platform, designed for high retention and engagement.
+  ${systemPersonaAndStrategy}
   
-  MASTER FORMULA FASTERAPI RULES:
-
-  1. **INTI IDE TUNGGAL (Single Focus)**: 
-     - One script = One specific problem.
-     - Do not wander to other topics.
-     - Every sentence must point to this single issue.
-
-  2. **GARIS PAS (Problem - Agitation - Solution) & AIDA**:
-     - **P (Attention/Hook)**: You MUST use a Hook from the provided "HOOK DATABASE". It must be brutal, simple, and familiar.
-     - **A (Interest/Agitation)**: Sharpen the problem. Make it hurt or relatable. Do NOT switch issues.
-     - **S (Desire/Solution)**: 
-       - Provide 1-4 CONCRETE steps/solutions. 
-       - Must be actionable TODAY. 
-       - Create an "Aha!" moment ("Oh... pantes selama ini salah").
-       - IMPORTANT: Keep a part of the solution slightly hidden/teased (cliffhanger) to drive the Action.
-     - **Action (CTA)**: Strong call to action matching the goal.
-
-  3. **FILMIC FLOW + NEURO-CINEMA**:
-     - Flow like a short film. One sentence must logically pull the next.
-     - NO abstract, poetic, or ambiguous words.
-     - Use visual, hypnotic, and simple language (easy enough for a child to understand).
-     - Natural spoken Indonesian (Bahasa Indonesia).
-
   MANDATORY CONSTRAINTS:
   ${hookConstraint}
   2. **DURATION**: Adhere strictly to the ${duration} constraint. 

@@ -22,6 +22,8 @@ export type AudienceType = 'Gen Z / Anak Muda' | 'Millennials / Dewasa Muda' | '
 export type ToneType = 'Santai & Lucu' | 'Serius & Edukatif' | 'Antusias & Ceria' | 'Tegas & To-the-point' | 'Emosional & Storytelling' | 'Sarkas & Menggelitik';
 export type ContentGoal = 'Viral / Views (Broad)' | 'Jualan (Hard Sell)' | 'Edukasi / Save' | 'Interaksi / Komen' | 'Followers Baru' | 'Klik Link di Bio';
 
+export type ScriptStrategy = 'faster_api' | 'contrarian';
+
 export interface ScriptOptions {
   useCustomAudience: boolean;
   audience: AudienceType;
@@ -29,6 +31,7 @@ export interface ScriptOptions {
   useCustomGoal: boolean;
   goal: ContentGoal;
   useMagicHook: boolean;
+  strategy: ScriptStrategy;
 }
 
 export interface StoryboardScene {
@@ -64,6 +67,7 @@ export interface ScriptGeneratorProps {
   results: GeneratedScript[]; // Changed from single result to array for versions
   activeVersionIndex: number;
   error: string | null;
+  initialTopic?: string;
 }
 
 export interface ChatMessage {
