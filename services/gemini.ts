@@ -12,7 +12,7 @@ export const generateScript = async (
 ): Promise<GeneratedScript> => {
   
   // Use API key from environment variable as per strict guidelines
-  apiKey: process.env.GEMINI_API_KEY
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const modelId = 'gemini-2.5-flash';
 
   const parts: any[] = [];
