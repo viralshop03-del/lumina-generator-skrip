@@ -5,9 +5,10 @@ interface SidebarProps {
   onNewChat: () => void;
   selectedPlatform: Platform | 'history'; 
   onSelectPlatform: (platform: Platform | 'history') => void;
+  onResetApiKey: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ onNewChat, selectedPlatform, onSelectPlatform }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ onNewChat, selectedPlatform, onSelectPlatform, onResetApiKey }) => {
   
   const platforms: { id: Platform, icon: React.ReactNode }[] = [
     { 
@@ -97,6 +98,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNewChat, selectedPlatform, o
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           <span>Buat Skrip Baru</span>
+        </button>
+
+        <button
+          onClick={onResetApiKey}
+          className="w-full flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white py-2 px-4 rounded-lg transition-colors duration-200 border border-gray-700 hover:border-gray-600 text-xs font-semibold"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12a5 5 0 0 0 5 5 8 8 0 0 1 5 2 8 8 0 0 1 5-2 5 5 0 0 0 5-5V7h-5a8 8 0 0 0-5 2 8 8 0 0 0-5-2H2Z"/><line x1="12" y1="22" x2="12" y2="15.5"/><polyline points="22 6 12 13 2 6"/></svg>
+          <span>Ganti API Key</span>
         </button>
       </div>
     </div>

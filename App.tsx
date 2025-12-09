@@ -3,14 +3,16 @@ import { Sidebar } from './components/Sidebar';
 import { ScriptGenerator } from './components/ScriptGenerator';
 import { HistoryFolder } from './components/HistoryFolder';
 import { Toast } from './components/Toast';
+import { ApiKeyModal } from './components/ApiKeyModal';
 import { Platform, PLATFORM_LABELS, ScriptDuration, GeneratedScript, SavedScript, ScriptOptions } from './types';
 import { generateScript } from './services/gemini';
-import { saveScriptToStorage, saveSession, getSession } from './services/storage';
+import { saveScriptToStorage, saveSession, getSession, getApiKey, saveApiKey, removeApiKey } from './services/storage';
 
 export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   // App State
+  const [userApiKey, setUserApiKey] = useState<string | null>(null);
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>('general');
   const [viewMode, setViewMode] = useState<'generator' | 'history'>('generator');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -28,8 +30,14 @@ export default function App() {
     image?: string;
   } | null>(null);
 
-  // 1. Initial Load: Check Session
+  // 1. Initial Load: Check API Key & Session
   useEffect(() => {
+    // Check API Key
+    const storedKey = getApiKey();
+    if (storedKey) {
+      setUserApiKey(storedKey);
+    }
+
     // Check Storage for Previous Session
     const savedSession = getSession();
     if (savedSession) {
@@ -64,7 +72,26 @@ export default function App() {
     setToast({ message, type });
   };
 
+  const handleSaveApiKey = (key: string) => {
+    saveApiKey(key);
+    setUserApiKey(key);
+    showToast("Selamat datang! Anda siap membuat skrip.", "success");
+  };
+
+  const handleResetApiKey = () => {
+    if (confirm("Apakah Anda yakin ingin mengganti API Key? Aplikasi akan dimuat ulang.")) {
+      removeApiKey();
+      setUserApiKey(null);
+      window.location.reload();
+    }
+  };
+
   const handleGenerate = async (topic: string, duration: ScriptDuration, options: ScriptOptions, image?: string) => {
+    if (!userApiKey) {
+      showToast("API Key hilang. Silakan refresh halaman.", "error");
+      return;
+    }
+
     setIsGenerating(true);
     // New generation = reset versions
     setScriptVersions([]); 
@@ -72,7 +99,8 @@ export default function App() {
     setCurrentParams({ topic, duration, options, image });
 
     try {
-      const generatedData = await generateScript(topic, duration, selectedPlatform, options, image);
+      // PASS USER API KEY HERE
+      const generatedData = await generateScript(userApiKey, topic, duration, selectedPlatform, options, image);
       setScriptVersions([generatedData]);
       
       saveScriptToStorage(topic, selectedPlatform, generatedData);
@@ -81,7 +109,7 @@ export default function App() {
     } catch (err: any) {
       console.error(err);
       if (err.message.includes('API Key')) {
-        showToast("API Key salah atau kadaluarsa. Cek environment variables.", "error");
+        showToast("API Key tidak valid. Silakan ganti key.", "error");
       } else {
         showToast(`Gagal: ${err.message}`, "error");
       }
@@ -91,14 +119,16 @@ export default function App() {
   };
 
   const handleRegenerateWithHook = async (specificHook: string) => {
-    if (!currentParams) return;
+    if (!currentParams || !userApiKey) return;
 
     setIsGenerating(true);
 
     try {
       const regOptions = { ...currentParams.options, useMagicHook: false };
 
+      // PASS USER API KEY HERE
       const generatedData = await generateScript(
+        userApiKey,
         currentParams.topic, 
         currentParams.duration, 
         selectedPlatform, 
@@ -167,7 +197,12 @@ export default function App() {
   return (
     <div className="flex h-screen w-full bg-gray-950 text-gray-100 overflow-hidden font-sans relative">
       
-      <div className="flex-1 flex flex-row h-full w-full">
+      {/* GATEKEEPER MODAL: If no API key, block everything else */}
+      {!userApiKey && (
+        <ApiKeyModal onSave={handleSaveApiKey} />
+      )}
+
+      <div className={`flex-1 flex flex-row h-full w-full ${!userApiKey ? 'blur-sm pointer-events-none' : ''}`}>
         
         {/* Toast Notification */}
         {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
@@ -186,6 +221,7 @@ export default function App() {
             selectedPlatform={viewMode === 'history' ? 'history' : selectedPlatform} 
             onSelectPlatform={handleSidebarSelect}
             onNewChat={handleNewScript}
+            onResetApiKey={handleResetApiKey}
           />
         </div>
 
