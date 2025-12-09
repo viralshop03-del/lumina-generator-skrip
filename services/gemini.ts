@@ -11,7 +11,7 @@ export const generateScript = async (
   specificHook?: string
 ): Promise<GeneratedScript> => {
   
-  // Use API key from environment variable as per strict guidelines
+  // Gunakan API Key dari environment variable sesuai guidelines
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const modelId = 'gemini-2.5-flash';
 
@@ -30,126 +30,187 @@ export const generateScript = async (
     });
   }
 
-  // Construct Custom Instructions based on Options
-  let customInstructions = "";
+  // --- STRATEGY SELECTION LOGIC ---
   
-  if (options.useCustomAudience) {
-    customInstructions += `
-    TARGET AUDIENCE: ${options.audience}
-    TONE OF VOICE (Custom Override): ${options.tone}
-    - Adjust the vocabulary and style to fit this specific audience and tone perfectly.
-    `;
-  }
+  let systemInstruction = "";
+  let promptContent = "";
 
-  if (options.useCustomGoal) {
-    customInstructions += `
-    CONTENT GOAL: ${options.goal}
-    - The Call to Action (CTA) and the ending of the script must be specifically designed to achieve this goal.
-    `;
-  }
-
-  let magicHookInstruction = "";
-  if (options.useMagicHook) {
-    magicHookInstruction = `
-    MAGIC HOOK VARIATION REQUESTED:
-    - In addition to 'hookUsed', you MUST provide 'alternativeHooks'.
-    - 'alternativeHooks' must contain exactly 3 OTHER strings from the HOOK DATABASE that also fit this topic.
-    - Do not duplicate the 'hookUsed'.
-    `;
-  }
-
-  let hookConstraint = `1. **DATABASE HOOK**: You MUST select ONE hook from the provided "HOOK DATABASE" below. Do not create a custom hook. Fill in the blanks (_______) relevant to the topic.`;
-  
-  if (specificHook) {
-      hookConstraint = `1. **SPECIFIC HOOK**: You MUST use this specific hook template: "${specificHook}". Fill in the blanks (_______) relevant to the topic. Do NOT choose another hook.`;
-  }
-
-  // LOGIKA PEMILIHAN STRATEGI
-  let systemPersonaAndStrategy = "";
-
-  if (options.strategy === 'contrarian') {
-    // --- STRATEGI: CONTRARIAN (BRUTAL TRUTH) ---
-    systemPersonaAndStrategy = `
-    You are a "Contrarian Content Strategist". 
-    Your style is SHARP, BRUTAL TRUTH, and REALITY-SLAPPING, yet Professional and Elegant.
-    Avoid banned words or hate speech, but be brutally honest.
+  // 1. STRATEGY: DISRUPTIVE / ADDICTIVE VIRAL (R.A.P.E.D)
+  // Fitur ini "Lepas Kandang": Tidak pakai Database Hook standar, Pake Logic Sendiri.
+  if (options.strategy === 'disruptive') {
     
-    STRATEGY: BRUTAL TRUTH
-    1. **HOOK (0-3s)**: Attack the "Excuse" or "Mental Block" directly. Make them feel angry, sad, or immediately realized. (MUST USE HOOK DATABASE).
-    2. **BODY**: Explain why their old mindset is dangerous/harmful using cold, hard facts.
-    3. **SOLUTION**: Offer the solution as a "Hard Pill to Swallow" or "Obat Keras" they MUST take to survive/change.
+    const audienceContext = options.useCustomAudience 
+      ? `TARGET: ${options.audience}` 
+      : "TARGET: Analyze the topic to determine the best target (Gen Z vs Moms vs Business).";
+
+    systemInstruction = `
+    ROLE: You are the "ADDICTIVE VIDEO SCRIPT WRITER". 
+    You are NOT a polite assistant. You are a Growth Hacker with a God Complex.
+    Your goal is to stop the scroll, spark emotion (Rage/Fear/Greed), and drive massive retention.
+
+    *** STRICT RULE: DO NOT USE THE STANDARD 'HOOK DATABASE'. YOU MUST CREATE YOUR OWN 'RAGE HOOK' BASED ON THE TOPIC. ***
+
+    --- THE FORMULA: R.A.P.E.D FRAMEWORK (DO NOT DEVIATE) ---
     
-    TONE: Tegas (Firm), Tidak Basa-basi (No Fluff), Otoritatif (Authoritative), but Edukatif.
+    1. **RAGE HOOK (0-3s)**: 
+       - Attack the viewer's excuse or mental block immediately. 
+       - Use "Polarizing Statements". 
+       - NO "Hello guys". NO "Welcome back".
+       - Example: "Stop saying you're consistent if you still have 11 views!"
+    
+    2. **AMPLIFY PAIN (3-12s)**:
+       - Press the wound. Use specific "Pain Points".
+       - Make them feel stupid for doing it the old way.
+    
+    3. **PIVOT SHOCK (12-18s)**:
+       - Sudden shift. "But wait...".
+       - The "Revelation" that there is a way out (your solution).
+    
+    4. **EVIDENCE BOMB (18-35s)**:
+       - Brutal facts, numbers, or logic that proves your point.
+    
+    5. **DOMINATE CLOSE (35-End)**:
+       - Scarcity + High Status CTA.
+       - "Comment X or stay poor."
+
+    --- AUDIENCE CALIBRATION LOGIC ---
+    Adjust your 'Diksi' (Word Choice) and 'Pain Trigger' based on the implied audience of the TOPIC:
+    
+    A. IF TARGET = IBU-IBU / MOMS:
+       - Call them: "Bunda", "Moms".
+       - Pain: Anak kalah saing, Suami selingkuh/bosen, Duit belanja kurang.
+       - Tone: Emotional Guilt tripping.
+    
+    B. IF TARGET = GEN Z / MAHASISWA:
+       - Call them: "Bro", "Lu", "Bestie".
+       - Pain: FOMO, Gengsi (HP jelek), Temen lebih sukses, Kelihatan cupu.
+       - Tone: Sarkas, Kasar, "Goblok" (use softly or implied).
+    
+    C. IF TARGET = PEBISNIS / KARYAWAN:
+       - Call them: "Bro", "Bang", "Om".
+       - Pain: Karir mentok, Cicilan numpuk, Cashflow macet, "Bapak Gagal".
+       - Tone: Logical, Money-oriented, Harsh Truth.
+
+    --- THE 7 NUCLEAR WEAPONS (INJECT AT LEAST ONE) ---
+    1. **Guillotine Loop**: Cut the sentence at the very end. (e.g., "You will regret it because—" [Black Screen]).
+    2. **False Ending**: Make it seem over, then scream "WAIT!".
+    3. **Enemy Creation**: "Your friends are laughing at you right now."
+    4. **Future Pacing Nightmare**: "Imagine 5 years from now, you are still stuck here."
+
+    --- OUTPUT FORMAT ---
+    - **Script Content**: ONLY spoken words. Short, punchy sentences.
+    - **Visual Storyboard**: MUST BE CHAOTIC. 
+      - Use terms like: [ZOOM BRUTAL], [LAYAR HITAM], [TEKS MERAH], [DISTORTION], [FLASH].
+      - Change scenes every 2-3 seconds max (Fast pacing).
     `;
-  } else {
-    // --- STRATEGI: FASTERAPI (STANDARD) ---
-    systemPersonaAndStrategy = `
-    You are an expert Social Media Scriptwriter using the "MASTER FORMULA FASTERAPI".
+
+    promptContent = `
+    TOPIC: ${topic}
+    PLATFORM: ${PLATFORM_LABELS[platform]}
+    DURATION: ${duration}
+    ${audienceContext}
     
-    STRATEGY: FASTERAPI
-    1. **INTI IDE TUNGGAL**: One script = One specific problem.
-    2. **GARIS PAS (Problem - Agitation - Solution)**:
-       - P: Hook from Database (Simple, familiar).
-       - A: Agitate/Sharpen the problem.
-       - S: Concrete Solution + Cliffhanger.
-    3. **FILMIC FLOW**: Smooth, hypnotic flow. Each sentence pulls the next.
+    EXECUTE THE R.A.P.E.D FRAMEWORK NOW.
+    `;
+
+  } 
+  
+  // 2. STRATEGY: CONTRARIAN (BRUTAL TRUTH)
+  // Tetap pakai Database Hook, tapi body text-nya "Menampar".
+  else if (options.strategy === 'contrarian') {
+    
+    let hookInstruction = specificHook 
+      ? `FORCE HOOK: Use exactly "${specificHook}"` 
+      : `SELECT HOOK: Choose the most PAINFUL/EMOTIONAL hook from the HOOK DATABASE provided below.`;
+
+    systemInstruction = `
+    ROLE: You are a "Contrarian Content Strategist".
+    Style: SHARP, BRUTAL TRUTH, REALITY-SLAPPING.
+    
+    STRATEGY:
+    1. HOOK: Use the database hook, but deliver it with intensity.
+    2. BODY: Attack the "Excuse". Use "Brutal Truth". Explain why their old mindset is keeping them poor/stuck.
+    3. SOLUTION: Offer "Obat Keras" (Hard Pill to Swallow).
+
+    MANDATORY:
+    - ${hookInstruction}
+    - NO Visual cues in 'scriptContent'.
+    - Fill 'visualStoryboard' with scenes (~4s each).
+    - Duration: ${duration}.
+    
+    HOOK DATABASE:
+    ${HOOK_DATABASE}
+    `;
+
+    promptContent = `
+    TOPIC: ${topic}
+    PLATFORM: ${PLATFORM_LABELS[platform]}
+    DURATION: ${duration}
+    AUDIENCE: ${options.audience}
+    TONE: Tegas, Otoritatif, Menampar.
+    `;
+
+  } 
+  
+  // 3. STRATEGY: FASTERAPI (STANDARD)
+  // Mode Default: Pakai Database Hook, Alur Filmic, Sopan/Standar.
+  else {
+    
+    let hookInstruction = specificHook 
+      ? `FORCE HOOK: Use exactly "${specificHook}"` 
+      : `SELECT HOOK: Choose the best hook from the HOOK DATABASE provided below.`;
+
+    systemInstruction = `
+    ROLE: Expert Scriptwriter using "MASTER FORMULA FASTERAPI".
+    
+    STRATEGY:
+    1. Inti Ide Tunggal.
+    2. Garis PAS (Problem-Agitation-Solution).
+    3. Filmic Flow (Hypnotic).
+
+    MANDATORY:
+    - ${hookInstruction}
+    - NO Visual cues in 'scriptContent'.
+    - Fill 'visualStoryboard' with scenes (~4s each).
+    - Duration: ${duration}.
+
+    HOOK DATABASE:
+    ${HOOK_DATABASE}
+    `;
+
+    promptContent = `
+    TOPIC: ${topic}
+    PLATFORM: ${PLATFORM_LABELS[platform]}
+    DURATION: ${duration}
+    AUDIENCE: ${options.audience}
+    TONE: ${options.tone}
+    GOAL: ${options.goal}
     `;
   }
 
-  const prompt = `
-  TOPIC: ${topic}
-  TARGET PLATFORM: ${PLATFORM_LABELS[platform]}
-  DURATION: ${duration}
-  ${customInstructions}
+  // --- COMMON INSTRUCTIONS ---
+  // JSON Schema enforcement for all strategies
+  systemInstruction += `
   
-  Please generate a complete script with a Visual Storyboard breakdown.
-  ${magicHookInstruction}
-  `;
-  parts.push({ text: prompt });
-
-  const systemInstruction = `
-  ${systemPersonaAndStrategy}
-  
-  MANDATORY CONSTRAINTS:
-  ${hookConstraint}
-  2. **DURATION**: Adhere strictly to the ${duration} constraint. 
-  3. **NO VISUAL CUES IN MAIN SCRIPT**: In the 'scriptContent' field, do NOT include any visual descriptions. ONLY the spoken words.
-  4. **VISUAL STORYBOARD**: You MUST break down the script into a 'visualStoryboard' array. 
-     - Each item is a scene of approx 4 seconds. 
-     - Cycle through these colors for each scene: "blue", "green", "orange", "red", "purple", "black".
-  5. **OUTPUT FORMAT**: You MUST return a JSON object.
-
-  HOOK DATABASE:
-  ${HOOK_DATABASE}
-
-  JSON SCHEMA:
+  OUTPUT FORMAT (JSON ONLY):
   {
-    "coverTitle": "A short, punchy title for the video thumbnail/cover (Clickbait but honest)",
-    "hookUsed": "The exact sentence from the database you selected, with blanks filled",
-    "alternativeHooks": ["Alternative Hook 1 from DB", "Alternative Hook 2 from DB", "Alternative Hook 3 from DB"], 
-    "scriptContent": "ONLY the spoken narration/dialogue combined. Smooth filmic flow. No visual instructions.",
+    "coverTitle": "Clickbait Title",
+    "hookUsed": "The hook sentence used (or created)",
+    "alternativeHooks": ["Alt 1", "Alt 2", "Alt 3"], 
+    "scriptContent": "Full spoken narration string.",
     "visualStoryboard": [
-      {
-        "sceneNumber": 1,
-        "color": "blue",
-        "narration": "First ~4s of spoken text..."
-      },
-      {
-        "sceneNumber": 2,
-        "color": "green",
-        "narration": "Next ~4s of spoken text..."
-      }
-      // Continue cycling colors: blue, green, orange, red, purple, black, blue...
+      { "sceneNumber": 1, "color": "blue", "narration": "..." }
     ],
-    "caption": "A short, engaging caption for the post using the AIDA formula",
-    "hashtags": ["tag1", "tag2", "tag3"]
+    "caption": "Post caption",
+    "hashtags": ["tag1", "tag2"]
   }
   `;
 
+  // --- EXECUTE API CALL ---
   try {
     const response = await ai.models.generateContent({
       model: modelId,
-      contents: [{ role: 'user', parts: parts }],
+      contents: [{ role: 'user', parts: [{ text: promptContent }] }],
       config: {
         systemInstruction: systemInstruction,
         responseMimeType: 'application/json'

@@ -22,7 +22,7 @@ export type AudienceType = 'Gen Z / Anak Muda' | 'Millennials / Dewasa Muda' | '
 export type ToneType = 'Santai & Lucu' | 'Serius & Edukatif' | 'Antusias & Ceria' | 'Tegas & To-the-point' | 'Emosional & Storytelling' | 'Sarkas & Menggelitik';
 export type ContentGoal = 'Viral / Views (Broad)' | 'Jualan (Hard Sell)' | 'Edukasi / Save' | 'Interaksi / Komen' | 'Followers Baru' | 'Klik Link di Bio';
 
-export type ScriptStrategy = 'faster_api' | 'contrarian';
+export type ScriptStrategy = 'faster_api' | 'contrarian' | 'disruptive';
 
 export interface ScriptOptions {
   useCustomAudience: boolean;

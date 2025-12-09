@@ -26,26 +26,33 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ onSave }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
-      <div className="bg-gray-900 border border-gray-700 rounded-3xl shadow-2xl max-w-md w-full p-8 animate-fade-in-up relative overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4">
+      <div className="bg-gray-900 border border-gray-700 rounded-3xl shadow-2xl max-w-lg w-full p-8 relative overflow-hidden">
         
         {/* Background Accent */}
         <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
 
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-gray-700 shadow-inner rotate-3 hover:rotate-0 transition-transform duration-300">
-             <span className="text-4xl">🚀</span>
+          <div className="w-20 h-20 bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-gray-700 shadow-inner">
+             <span className="text-4xl">👋</span>
           </div>
-          <h2 className="text-3xl font-extrabold text-white mb-2 tracking-tight">Selamat Datang</h2>
-          <p className="text-gray-400 text-sm leading-relaxed">
-            Untuk mulai membuat skrip viral tanpa batas, silakan masukkan <strong>Gemini API Key</strong> Anda sendiri. 
+          <h2 className="text-2xl font-black text-white mb-2 uppercase tracking-wide">Selamat Datang di Generator Skrip Powerfull</h2>
+          <p className="text-gray-400 text-sm leading-relaxed mt-4">
+            Aplikasi ini dirancang untuk menghasilkan skrip viral menggunakan formula profesional. 
+            <br/><br/>
+            <strong>PENTING:</strong> Karena ini adalah aplikasi publik, sistem kami mewajibkan Anda menggunakan 
+            <strong> Kunci API Google (Gemini)</strong> milik Anda sendiri.
           </p>
+        </div>
+
+        <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-3 mb-6 text-center">
+             <p className="text-xs text-yellow-500 font-semibold">⛔ Akses ditutup sebelum API Key dimasukkan.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">
-              API KEY ANDA
+              Masukkan Gemini API Key Anda
             </label>
             <div className="relative">
                 <input
@@ -73,26 +80,24 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ onSave }) => {
 
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-4 rounded-xl transition-all transform active:scale-[0.98] shadow-lg shadow-indigo-900/30 flex items-center justify-center gap-2"
+            className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-indigo-900/30 flex items-center justify-center gap-2"
           >
-            <span>Simpan & Lanjutkan</span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            <span>Buka Akses Aplikasi 🔓</span>
           </button>
         </form>
 
         <div className="mt-8 pt-6 border-t border-gray-800 text-center">
-          <p className="text-xs text-gray-500 mb-3">Belum punya API Key?</p>
           <a 
             href="https://aistudio.google.com/app/apikey" 
             target="_blank" 
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-indigo-400 text-xs font-semibold transition-colors"
           >
-            <span>Dapatkan Gratis di Google AI Studio</span>
+            <span>Dapatkan Key Gratis (Google AI Studio)</span>
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
           </a>
           <p className="text-[10px] text-gray-600 mt-4 italic">
-            *Tenang, kunci Anda tersimpan aman di browser (LocalStorage) ini.
+            *Kunci disimpan lokal di browser Anda. Kami tidak mengirimnya ke server kami.
           </p>
         </div>
       </div>

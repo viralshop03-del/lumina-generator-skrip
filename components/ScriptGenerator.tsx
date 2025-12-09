@@ -39,12 +39,17 @@ const STRATEGIES: { id: ScriptStrategy; label: string; desc: string }[] = [
   { 
     id: 'faster_api', 
     label: 'Formula Standar (FasterAPI)', 
-    desc: 'Filmic Flow, Emosional, & Storytelling yang mengalir.' 
+    desc: 'Filmic Flow, Emosional, & Storytelling yang mengalir. (Menggunakan Database Hook)' 
   },
   { 
     id: 'contrarian', 
     label: 'Brutal Truth (Contrarian)', 
-    desc: 'Tegas, Menampar Realita, Fakta Pahit, & Solusi Keras.' 
+    desc: 'Tegas, Menampar Realita, Fakta Pahit. (Menggunakan Database Hook)' 
+  },
+  { 
+    id: 'disruptive', 
+    label: 'Addictive Viral (R.A.P.E.D)', 
+    desc: '🔥 EKSTREM: Rage Hook Custom, Visual Chaotic, 7 Senjata Nuklir. (BYPASS DATABASE HOOK)' 
   }
 ];
 
@@ -257,7 +262,7 @@ ${activeResult.hashtags.join(' ')}
              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500">
                 Pilih Strategi / Formula Skrip
              </label>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+             <div className="grid grid-cols-1 gap-3">
                 {STRATEGIES.map((strat) => (
                   <button
                     key={strat.id}
@@ -354,18 +359,20 @@ ${activeResult.hashtags.join(' ')}
                )}
              </div>
 
-             {/* Feature 3: Magic Hook */}
-             <div className={`p-4 rounded-xl border border-gray-800 bg-gray-950/50 hover:border-gray-700 transition-colors ${useMagicHook ? 'border-gray-600' : ''}`}>
-               <div className="flex items-center justify-between cursor-pointer" onClick={() => setUseMagicHook(!useMagicHook)}>
-                  <div className="flex items-center gap-3">
-                     <span className="text-xl">🧲</span>
-                     <span className="text-sm font-bold text-gray-200">Magic Hook (3 Variasi)</span>
-                  </div>
-                  <div className={`w-11 h-6 flex items-center bg-gray-700 rounded-full p-1 transition-colors duration-300 ${useMagicHook ? theme.toggleActive : ''}`}>
-                    <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${useMagicHook ? 'translate-x-5' : ''}`}></div>
-                  </div>
+             {/* Feature 3: Magic Hook (Only show if NOT disruptive, or show as disabled) */}
+             {strategy !== 'disruptive' && (
+               <div className={`p-4 rounded-xl border border-gray-800 bg-gray-950/50 hover:border-gray-700 transition-colors ${useMagicHook ? 'border-gray-600' : ''}`}>
+                 <div className="flex items-center justify-between cursor-pointer" onClick={() => setUseMagicHook(!useMagicHook)}>
+                    <div className="flex items-center gap-3">
+                       <span className="text-xl">🧲</span>
+                       <span className="text-sm font-bold text-gray-200">Magic Hook (3 Variasi)</span>
+                    </div>
+                    <div className={`w-11 h-6 flex items-center bg-gray-700 rounded-full p-1 transition-colors duration-300 ${useMagicHook ? theme.toggleActive : ''}`}>
+                      <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${useMagicHook ? 'translate-x-5' : ''}`}></div>
+                    </div>
+                 </div>
                </div>
-             </div>
+             )}
           </div>
 
           {/* Image Upload (Optional) */}
