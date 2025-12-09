@@ -1,20 +1,35 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Generator Skrip Konten (Cloudflare Pages)
 
-# Run and deploy your AI Studio app
+Aplikasi ini telah dikonversi menjadi **Cloudflare Pages Functions** (Backend) dan **Vanilla JS** (Frontend).
+Tidak perlu `npm install` atau `build command`.
 
-This contains everything you need to run your app locally.
+## Struktur Project
 
-View your app in AI Studio: https://ai.studio/apps/drive/1Jy82vF6Tmd-fDEFzBIJmo6YO6z0TVECj
+```
+/public
+  /index.html   (UI Utama)
+  /styles.css   (Styling Tambahan)
+  /app.js       (Logika Frontend)
+/functions
+  /api
+    /generate.js (Logika AI & Database Hook)
+wrangler.toml   (Config)
+```
 
-## Run Locally
+## Cara Deploy ke Cloudflare Pages
 
-**Prerequisites:**  Node.js
+1.  Upload folder ini ke GitHub Repository.
+2.  Masuk ke Dashboard Cloudflare > **Workers & Pages**.
+3.  Klik **Create Application** > **Pages** > **Connect to Git**.
+4.  Pilih Repository Anda.
+5.  **Build Settings**:
+    *   **Framework preset**: None
+    *   **Build command**: (Kosongkan)
+    *   **Build output directory**: `public`
+6.  Klik **Save and Deploy**.
 
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Fitur
+*   **Bring Your Own Key**: API Key disimpan di LocalStorage pengguna.
+*   **Strategi Skrip**: FasterAPI, Contrarian, Disruptive (R.A.P.E.D).
+*   **Visual Storyboard**: Breakdown scene per 4 detik.
+*   **Tanpa Server**: Berjalan 100% di Edge Network Cloudflare.

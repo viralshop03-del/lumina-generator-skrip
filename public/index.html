@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Skrip Konten</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-950 text-gray-100 font-sans h-screen flex overflow-hidden">
+
+    <!-- API KEY MODAL -->
+    <div id="apiKeyModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-xl p-4 hidden">
+        <div class="bg-gray-900 border border-gray-700 rounded-3xl shadow-2xl max-w-lg w-full p-8 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+            <div class="text-center mb-8">
+                <div class="text-4xl mb-4">👋</div>
+                <h2 class="text-2xl font-black text-white mb-2">SELAMAT DATANG</h2>
+                <p class="text-gray-400 text-sm mt-4">
+                    Aplikasi ini menggunakan sistem <strong>Bring Your Own Key</strong>.
+                    Data Anda tersimpan aman di browser local storage.
+                </p>
+            </div>
+            <form id="apiKeyForm" class="space-y-4">
+                <input type="password" id="inputApiKey" placeholder="Paste Gemini API Key (AIza...)" class="w-full bg-gray-950 border border-gray-700 rounded-xl p-4 text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl transition-all">BUKA AKSES APLIKASI 🔓</button>
+            </form>
+            <div class="mt-6 text-center">
+                <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-400 text-xs hover:underline">Dapatkan API Key Gratis di sini</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-full shadow-2xl hidden transition-all duration-300">
+        <span id="toastMessage" class="text-sm font-bold"></span>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="w-72 bg-gray-900 border-r border-gray-800 flex flex-col hidden md:flex h-full transition-transform z-40">
+        <div class="p-4 border-b border-gray-800 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">Generator Skrip</h1>
+                <p class="text-xs text-gray-500 mt-1">100+ Proven Hooks</p>
+            </div>
+            <button class="md:hidden text-gray-400" onclick="document.getElementById('sidebar').classList.add('hidden')">✕</button>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
+            <div class="px-2 text-xs font-bold text-gray-500 uppercase mt-2 mb-1">Platform</div>
+            <button onclick="app.setPlatform('general')" class="nav-btn w-full text-left px-3 py-2 rounded-lg hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2" data-platform="general">📱 Semua Platform</button>
+            <button onclick="app.setPlatform('tiktok')" class="nav-btn w-full text-left px-3 py-2 rounded-lg hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2" data-platform="tiktok">🎵 TikTok</button>
+            <button onclick="app.setPlatform('instagram_reels')" class="nav-btn w-full text-left px-3 py-2 rounded-lg hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2" data-platform="instagram_reels">📸 Reels</button>
+            <button onclick="app.setPlatform('youtube_shorts')" class="nav-btn w-full text-left px-3 py-2 rounded-lg hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2" data-platform="youtube_shorts">▶️ Shorts</button>
+
+            <div class="px-2 text-xs font-bold text-gray-500 uppercase mt-4 mb-1">Data</div>
+            <button onclick="app.showHistory()" class="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-800 text-yellow-500 text-sm flex items-center gap-2">📂 Folder Data Saya</button>
+        </div>
+
+        <div class="p-4 border-t border-gray-800 space-y-2">
+            <button onclick="app.resetView()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-lg text-sm font-bold">Buat Baru</button>
+            <button onclick="app.resetApiKey()" class="w-full border border-gray-700 hover:bg-gray-800 text-gray-400 py-2 rounded-lg text-xs">Ganti API Key</button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main id="mainContent" class="flex-1 flex flex-col relative overflow-hidden bg-gray-950">
+        
+        <!-- Mobile Header -->
+        <div class="md:hidden p-4 border-b border-gray-800 bg-gray-900 flex justify-between items-center z-30">
+            <span class="font-bold text-white">Generator Skrip</span>
+            <button onclick="document.getElementById('sidebar').classList.remove('hidden'); document.getElementById('sidebar').classList.add('absolute');" class="text-gray-400 text-xl">☰</button>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar pb-32">
+            
+            <!-- HISTORY VIEW (Hidden by default) -->
+            <div id="historyView" class="hidden max-w-4xl mx-auto space-y-6">
+                <h2 class="text-2xl font-bold text-white mb-4">📂 Riwayat Skrip</h2>
+                <div id="historyList" class="grid gap-4 md:grid-cols-2"></div>
+            </div>
+
+            <!-- GENERATOR VIEW -->
+            <div id="generatorView" class="max-w-3xl mx-auto space-y-8">
+                
+                <div class="text-center">
+                    <h2 id="pageTitle" class="text-3xl font-black text-indigo-500 uppercase tracking-wider">GENERATOR SKRIP KONTEN</h2>
+                    <p class="text-gray-400 text-sm mt-2">Pilih strategi, masukkan topik, dan biarkan AI meracik viralitas.</p>
+                </div>
+
+                <!-- FORM INPUT -->
+                <div id="inputForm" class="bg-gray-900 border-2 border-indigo-500 rounded-2xl p-6 shadow-2xl transition-colors duration-300">
+                    
+                    <!-- Topic -->
+                    <div class="mb-6">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-indigo-500 mb-2">Ide Konten / Topik</label>
+                        <textarea id="topicInput" class="w-full bg-gray-950 border border-gray-700 rounded-xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 h-32 resize-none" placeholder="Contoh: Tips diet tanpa menyiksa..."></textarea>
+                    </div>
+
+                    <!-- Strategy -->
+                    <div class="mb-6">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Strategi Formula</label>
+                        <div class="grid gap-3">
+                            <label class="cursor-pointer p-4 rounded-xl border border-gray-800 bg-gray-950 hover:border-indigo-500 flex items-center gap-3 strategy-option">
+                                <input type="radio" name="strategy" value="faster_api" checked class="accent-indigo-500">
+                                <div>
+                                    <div class="font-bold text-sm text-gray-200">Formula Standar (FasterAPI)</div>
+                                    <div class="text-xs text-gray-500">Filmic Flow, Storytelling (Pakai Database Hook)</div>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer p-4 rounded-xl border border-gray-800 bg-gray-950 hover:border-indigo-500 flex items-center gap-3 strategy-option">
+                                <input type="radio" name="strategy" value="contrarian" class="accent-red-500">
+                                <div>
+                                    <div class="font-bold text-sm text-gray-200">Brutal Truth (Contrarian)</div>
+                                    <div class="text-xs text-gray-500">Tegas, Menampar Realita (Pakai Database Hook)</div>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer p-4 rounded-xl border border-gray-800 bg-gray-950 hover:border-purple-500 flex items-center gap-3 strategy-option">
+                                <input type="radio" name="strategy" value="disruptive" class="accent-purple-500">
+                                <div>
+                                    <div class="font-bold text-sm text-purple-400">🔥 Addictive Viral (R.A.P.E.D)</div>
+                                    <div class="text-xs text-gray-500">Ekstrem, Rage Hook Custom (Bypass Database Hook)</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Options Toggle -->
+                    <div class="mb-6">
+                        <button type="button" onclick="document.getElementById('advancedOptions').classList.toggle('hidden')" class="text-xs font-bold text-gray-400 hover:text-white flex items-center gap-1">
+                            <span>⚙️ Opsi Lanjutan (Audiens, Goal, Durasi)</span>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                        </button>
+                        <div id="advancedOptions" class="hidden mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-up">
+                            <div>
+                                <label class="text-xs text-gray-500">Target Audiens</label>
+                                <select id="audienceInput" class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2 text-sm text-white mt-1">
+                                    <option>Umum / Semua Kalangan</option>
+                                    <option>Gen Z / Anak Muda</option>
+                                    <option>Ibu-ibu / Parenting</option>
+                                    <option>Profesional / Bisnis</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500">Durasi</label>
+                                <select id="durationInput" class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2 text-sm text-white mt-1">
+                                    <option value="15s">15 Detik (Shorts)</option>
+                                    <option value="30s" selected>30 Detik (Ideal)</option>
+                                    <option value="60s">60 Detik (Storytelling)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <button onclick="app.generate()" id="generateBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95">
+                        GENERATE SEKARANG ✨
+                    </button>
+                </div>
+
+                <!-- RESULT SECTION -->
+                <div id="resultContainer" class="hidden animate-fade-in-up space-y-6">
+                    
+                    <!-- Meta Cards -->
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-gray-800 border-l-4 border-indigo-500 p-4 rounded-r-xl">
+                            <div class="text-xs text-indigo-400 font-bold uppercase mb-1">Judul Sampul</div>
+                            <h3 id="resTitle" class="text-xl font-black text-white"></h3>
+                        </div>
+                        <div class="bg-gray-800 border-l-4 border-yellow-500 p-4 rounded-r-xl">
+                            <div class="text-xs text-yellow-500 font-bold uppercase mb-1">Hook Utama</div>
+                            <p id="resHook" class="text-lg italic text-gray-200 font-serif"></p>
+                        </div>
+                    </div>
+
+                    <!-- Magic Hooks -->
+                    <div id="magicHooksContainer" class="hidden bg-gray-900 border border-dashed border-gray-700 p-4 rounded-xl">
+                        <div class="text-xs font-bold text-gray-400 uppercase mb-2">🧲 Alternatif Hook (Klik untuk Buat Varian)</div>
+                        <div id="magicHooksList" class="space-y-2"></div>
+                    </div>
+
+                    <!-- Visual Storyboard -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-gray-500 uppercase">Visual Storyboard</span>
+                            <button onclick="app.copyStoryboard()" class="text-xs border border-gray-700 px-2 py-1 rounded text-gray-400 hover:text-white">Copy Storyboard</button>
+                        </div>
+                        <div id="storyboardList" class="grid gap-3 md:grid-cols-2"></div>
+                    </div>
+
+                    <!-- Full Script -->
+                    <div class="bg-gray-800 border-l-4 border-indigo-500 p-6 rounded-r-xl shadow-lg">
+                        <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+                            <span class="text-xs font-bold text-indigo-400 uppercase">Naskah Voiceover</span>
+                            <button onclick="app.copyScript()" class="text-xs font-bold text-gray-400 hover:text-white">COPY TEXT</button>
+                        </div>
+                        <div id="resContent" class="text-gray-200 leading-relaxed whitespace-pre-wrap font-medium"></div>
+                    </div>
+
+                    <!-- Caption & Hashtags -->
+                    <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                        <div class="text-xs font-bold text-gray-500 uppercase mb-1">Caption & Hashtags</div>
+                        <p id="resCaption" class="text-sm text-gray-300 mb-2"></p>
+                        <div id="resHashtags" class="flex flex-wrap gap-2"></div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

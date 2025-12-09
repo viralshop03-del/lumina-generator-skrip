@@ -1,0 +1,51 @@
+/* Global Reset */
+body {
+    background-color: #030712;
+    color: #f3f4f6;
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #111827; 
+}
+::-webkit-scrollbar-thumb {
+    background: #374151; 
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #4b5563; 
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.5s ease-out forwards;
+}
+
+/* Utilities */
+.hidden { display: none !important; }
+.blur-sm { filter: blur(4px); pointer-events: none; }
+
+/* Platform Themes (Dynamic Classes) */
+.theme-tiktok { --main-color: #FE2C55; }
+.theme-youtube_shorts { --main-color: #FF0000; }
+.theme-instagram_reels { --main-color: #E1306C; }
+.theme-general { --main-color: #4F46E5; }
+
+/* Scene Colors */
+.scene-blue { border-left-color: #3b82f6; }
+.scene-green { border-left-color: #10b981; }
+.scene-orange { border-left-color: #f97316; }
+.scene-red { border-left-color: #ef4444; }
+.scene-purple { border-left-color: #a855f7; }
+.scene-black { border-left-color: #6b7280; }
